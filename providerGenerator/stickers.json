@@ -1,0 +1,26 @@
+{
+  "documentation": "Stickers list.",
+  "fields": [
+    {
+      "documentation": "Sticker's content ID",
+      "name": "content_id",
+      "type": "String"
+    },
+    {
+      "documentation": "Stickers pack name",
+      "name": "pack",
+      "type": "String"
+    },
+    {
+      "documentation": "Sticker's name",
+      "name": "name",
+      "type": "String"
+    }
+  ],
+  "constraints": [
+    {
+      "name": "unique_name",
+      "definition": "UNIQUE (content_id) ON CONFLICT REPLACE"
+    }
+  ]
+}

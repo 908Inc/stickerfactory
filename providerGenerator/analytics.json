@@ -1,0 +1,31 @@
+{
+  "documentation": "Analytics items list.",
+  "fields": [
+    {
+      "documentation": "Event category",
+      "name": "category",
+      "type": "String"
+    },
+    {
+      "documentation": "Event action",
+      "name": "action",
+      "type": "String"
+    },
+    {
+      "documentation": "Event label",
+      "name": "label",
+      "type": "String"
+    },
+    {
+      "documentation": "Event count",
+      "name": "event_count",
+      "type": "Integer",
+      "defaultValue": 0
+    },
+    {
+      "documentation": "Event time",
+      "name": "eventTime",
+      "type": "Long"
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "documentation": "Stickers list.",
+  "fields": [
+    {
+      "documentation": "Last using time",
+      "name": "last_using_time",
+      "type": "Long",
+      "defaultValue": "0"
+    },
+    {
+      "documentation": "Sticker's content ID",
+      "name": "content_id",
+      "type": "String"
+    }
+  ],
+  "constraints": [
+    {
+      "name": "unique_name",
+      "definition": "UNIQUE (content_id) ON CONFLICT REPLACE"
+    }
+  ]
+}

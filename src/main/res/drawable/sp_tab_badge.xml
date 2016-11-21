@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/outer_circle">
+        <shape
+            android:shape="oval">
+            <solid
+                android:color="@color/sp_tab_badge_outer"/>
+            <size
+                android:width="@dimen/sp_tab_indicator_size"
+                android:height="@dimen/sp_tab_indicator_size"/>
+        </shape>
+    </item>
+    <item
+        android:id="@+id/middle_circle"
+        android:bottom="1dp"
+        android:left="1dp"
+        android:right="1dp"
+        android:top="1dp">
+        <shape
+            android:shape="oval">
+            <solid
+                android:color="@color/sp_tab_badge_inner"/>
+        </shape>
+    </item>
+    <item
+        android:id="@+id/center_circle"
+        android:bottom="4dp"
+        android:left="4dp"
+        android:right="4dp"
+        android:top="4dp">
+        <shape
+            android:shape="oval">
+            <solid
+                android:color="@color/sp_tab_badge_center"/>
+        </shape>
+    </item>
+
+</layer-list>

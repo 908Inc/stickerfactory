@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+    <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+        <vc908.stickerfactory.ui.view.AspectRatioImageView
+                android:id="@+id/sp_banner_image"
+                android:layout_width="match_parent"
+                android:layout_height="140dp"
+                android:contentDescription="@null"
+                android:scaleType="centerCrop"/>
+
+        <TextView
+                android:id="@+id/sp_dialog_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="@dimen/material_24"
+                android:layout_marginRight="@dimen/material_24"
+                android:layout_marginTop="@dimen/material_16"
+                android:lineSpacingExtra="@dimen/material_8"
+                android:text="@string/sp_subscription_text"
+                android:textColor="@color/sp_subscription_text"
+                android:textSize="@dimen/text_18"
+                android:textStyle=""/>
+
+    </LinearLayout>
+</ScrollView>

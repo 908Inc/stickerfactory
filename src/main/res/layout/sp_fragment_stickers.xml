@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                xmlns:app="http://schemas.android.com/apk/res-auto"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+
+    <RelativeLayout
+        android:id="@+id/sliding_tabs_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <android.support.design.widget.TabLayout
+            android:id="@+id/sp_sliding_tabs"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:tabIndicatorColor="@color/sp_stickers_tab_strip"
+            app:tabMaxWidth="@dimen/sp_sticker_tab_size"
+            app:tabMinWidth="@dimen/sp_sticker_tab_size"
+            app:tabMode="scrollable"
+            app:tabPaddingBottom="0dp"
+            app:tabPaddingEnd="0dp"
+            app:tabPaddingStart="0dp"
+            app:tabPaddingTop="0dp"/>
+
+        <vc908.stickerfactory.ui.view.BadgedShopIcon
+            android:id="@+id/btn_shop"
+            android:layout_width="@dimen/sp_sticker_tab_size"
+            android:layout_height="@dimen/sp_sticker_tab_size"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:background="@color/sp_stickers_tab_bg"
+            android:contentDescription="@null"
+            android:scaleType="centerInside"
+            android:src="@drawable/sp_ic_add"/>
+
+        <View
+            android:layout_width="@dimen/sp_sticker_shop_divider"
+            android:layout_height="@dimen/sp_sticker_tab_size"
+            android:layout_toLeftOf="@+id/btn_shop"
+            android:layout_toStartOf="@+id/btn_shop"
+            android:background="#55ffffff"/>
+
+    </RelativeLayout>
+
+    <vc908.stickerfactory.ui.view.SwipeToggleViewPager
+        android:id="@+id/view_pager"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/sliding_tabs_container"/>
+</RelativeLayout>

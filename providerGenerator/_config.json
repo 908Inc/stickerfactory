@@ -1,0 +1,13 @@
+{
+    "syntaxVersion": 3,
+    "projectPackageId": "vc908.stickerfactory",
+    "authority": "vc908.stickerfactory.stickersProvider",
+    "providerJavaPackage": "vc908.stickerfactory.provider",
+    "providerClassName": "StickersProvider",
+    "sqliteOpenHelperClassName": "StickersSQLiteOpenHelper",
+    "sqliteOpenHelperCallbacksClassName": "StickersSQLiteOpenHelperCallbacks",
+    "databaseFileName": "stickers.db",
+    "databaseVersion": 8,
+    "enableForeignKeys": true,
+    "useAnnotations": true
+}

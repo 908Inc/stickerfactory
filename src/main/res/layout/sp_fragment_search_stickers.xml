@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:focusable="true"
+                android:focusableInTouchMode="true">
+
+    <RelativeLayout
+        android:id="@+id/sp_search_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/sp_stickers_list_bg"
+        android:elevation="@dimen/sp_toolbar_elevation">
+
+        <ImageView
+            android:id="@+id/sp_search_back"
+            android:layout_width="@dimen/material_48"
+            android:layout_height="@dimen/material_48"
+            android:layout_centerVertical="true"
+            android:contentDescription="@null"
+            android:scaleType="centerInside"
+            android:visibility="gone"
+            android:src="@drawable/sp_ic_back"
+            android:tint="@color/sp_dark_grey"/>
+
+        <EditText
+            android:id="@+id/sp_search_edit"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/material_48"
+            android:layout_marginRight="@dimen/material_16"
+            android:layout_marginLeft="@dimen/material_16"
+            android:layout_toLeftOf="@+id/sp_search_progress"
+            android:layout_toStartOf="@+id/sp_search_progress"
+            android:background="@android:color/transparent"
+            android:gravity="center_vertical"
+            android:hint="@string/search_stickers"
+            android:singleLine="true"
+            android:textSize="@dimen/text_18"
+            android:textCursorDrawable="@null"
+            android:textColor="@color/sp_search_fragment_text"
+            android:textColorHint="@color/sp_search_fragment_text_hint"
+            android:layout_toRightOf="@+id/sp_search_back"
+            android:layout_toEndOf="@+id/sp_search_back"/>
+
+        <ProgressBar
+            android:id="@+id/sp_search_progress"
+            android:layout_width="@dimen/material_24"
+            android:layout_height="@dimen/material_24"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:layout_marginEnd="@dimen/material_16"
+            android:layout_marginRight="@dimen/material_16"
+            android:tint="@color/sp_dark_grey"/>
+
+        <ImageView
+            android:id="@+id/sp_search_clear"
+            android:layout_width="@dimen/material_48"
+            android:layout_height="@dimen/material_48"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:contentDescription="@null"
+            android:scaleType="centerInside"
+            android:src="@drawable/sp_ic_close"
+            android:tint="@color/sp_dark_grey"/>
+
+    </RelativeLayout>
+
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/recycler_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/sp_search_container"
+        android:overScrollMode="never"
+        android:scrollbars="vertical"/>
+
+    <ProgressBar
+        android:id="@+id/progress"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:visibility="invisible"/>
+</RelativeLayout>

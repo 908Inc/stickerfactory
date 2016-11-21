@@ -1,0 +1,106 @@
+apply plugin: 'com.android.library'
+apply plugin: 'maven'
+apply plugin: 'me.tatarka.retrolambda'
+
+repositories {
+    mavenCentral()
+}
+
+android {
+    compileSdkVersion 25
+    buildToolsVersion '23.0.3'
+
+    defaultConfig {
+        minSdkVersion 14
+        targetSdkVersion 25
+        versionCode 1
+        versionName rootProject.sdkVersionName
+        consumerProguardFiles 'stickers-proguard-rules.pro'
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled rootProject.minifyEnableMode
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'stickers-proguard-rules.pro'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+
+dependencies {
+    compile 'com.github.bumptech.glide:glide:3.7.0'
+    compile 'com.squareup.okhttp3:okhttp:3.1.2'
+    compile 'com.squareup.okhttp3:logging-interceptor:3.1.2'
+    compile 'com.squareup.retrofit2:retrofit:2.0.0-beta4'
+    compile 'com.squareup.retrofit2:converter-gson:2.0.0-beta4'
+    compile 'com.squareup.retrofit2:adapter-rxjava:2.0.0-beta4'
+    // TODO EventBus 3.0?
+    compile 'de.greenrobot:eventbus:2.4.0'
+    compile 'com.android.support:design:25.0.0'
+    compile "com.android.support:appcompat-v7:25.0.0"
+    compile 'io.reactivex:rxandroid:1.0.1'
+    compile 'io.reactivex:rxjava:1.1.3'
+    compile 'com.anjlab.android.iab.v3:library:1.0.26@aar'
+    compile 'com.bartoszlipinski:recyclerviewheader2:2.0.1'
+    compile ('com.h6ah4i.android.widget.advrecyclerview:advrecyclerview:0.8.6@aar'){
+        transitive=true
+    }
+}
+
+// Publish archive task
+version = rootProject.sdkVersionName
+group = rootProject.groupName
+
+uploadArchives {
+    configuration = configurations.archives
+
+    repositories {
+        mavenDeployer {
+            repository(url: rootProject.artifactoryUrl) {
+                authentication(userName: rootProject.artifactoryUsername, password: rootProject.artifactoryPass)
+            }
+            pom.project {
+                name 'Android sticker factory'
+                packaging 'aar'
+                organization{
+                    name 'Stickerpipe'
+                    url 'http://stickerpipe.com'
+                }
+
+                licenses {
+                    license {
+                        name 'The Apache Software License, Version 2.0'
+                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                        distribution 'repo'
+                        comments 'Copyright ' + Calendar.getInstance().get(Calendar.YEAR) + ', Stickerpipe.'
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Put own path to java
+String java8 = getJavaVersion(8)
+String java7 = getJavaVersion(7)
+
+retrolambda {
+    jdk java8
+    oldJdk java7
+    javaVersion JavaVersion.VERSION_1_7
+    defaultMethods false
+    incremental true
+}
+
+String getJavaVersion(Integer v) {
+    def sout = new StringBuffer()
+    def proc = "/usr/libexec/java_home -v 1.$v".execute()
+    proc.consumeProcessOutput(sout, new StringBuffer())
+    proc.waitForOrKill(1000)
+    return sout.toString().replace("\n", "").replace("\r", "")
+}

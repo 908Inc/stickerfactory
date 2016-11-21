@@ -1,0 +1,32 @@
+<resources>
+    <string name="sp_package_stored">Pack stored</string>
+    <string name="sp_package_removed">Pack removed</string>
+    <string name="sp_collections">Collections</string>
+    <string name="sp_recently_empty">We have wonderful stickers!\nSwipe left and start using
+    </string>
+    <string name="sp_pack_info">Pack info</string>
+    <string name="sp_pack_download">Download</string>
+    <string name="sp_pack_remove">Remove pack</string>
+    <string name="sp_no_internet_connection">No internet connection</string>
+    <string name="sp_cant_process_request">Can not process request</string>
+    <string name="sp_content_is_unavailable">This content is currently\nunavailable</string>
+    <string name="sp_open_stickers">Open stickers</string>
+    <string name="sp_shop">Shop</string>
+    <string name="sp_tab_new">New</string>
+    <string name="sp_tab_top">Top</string>
+    <string name="sp_tab_free">Free</string>
+    <string name="sp_free">Free</string>
+    <string name="sp_shop_packs_list_promo_title" formatted="false">%s %s</string>
+    <string name="sp_activate">Activate</string>
+    <string name="sp_subscription_text">Send emotions with original Stickers! Available on premium
+        status.
+    </string>
+    <string name="sp_undo">Undo</string>
+    <string name="sp_reload">Reload</string>
+    <string name="sp_download">Download</string>
+    <string name="close">Close</string>
+    <string name="search_stickers">Search stickers</string>
+
+    <item name="sp_loader_key" type="id"/>
+
+</resources>

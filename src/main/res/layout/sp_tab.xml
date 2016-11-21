@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ImageView xmlns:android="http://schemas.android.com/apk/res/android"
+           android:layout_width="@dimen/sp_sticker_tab_size"
+           android:layout_height="@dimen/sp_sticker_tab_size"
+           android:padding="@dimen/sp_sticker_tab_padding"
+           android:scaleType="fitXY"
+           android:contentDescription="@null"/>

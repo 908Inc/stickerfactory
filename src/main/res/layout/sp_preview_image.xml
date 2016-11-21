@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:contentDescription="@null"
+                android:scaleType="fitXY">
+
+    <ImageView
+        android:id="@+id/sp_preview_image"
+        android:layout_width="@dimen/sp_sticker_item_size"
+        android:layout_height="@dimen/sp_sticker_item_size"
+        android:layout_centerInParent="true"
+        android:contentDescription="@null"
+        android:scaleType="fitXY"/>
+</RelativeLayout>

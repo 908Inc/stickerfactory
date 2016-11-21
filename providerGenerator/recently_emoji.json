@@ -1,0 +1,22 @@
+{
+  "documentation": "Recently used emoji list.",
+  "fields": [
+    {
+      "documentation": "Last using time",
+      "name": "last_using_time",
+      "type": "Long",
+      "defaultValue": "0"
+    },
+    {
+      "documentation": "Emoji code",
+      "name": "code",
+      "type": "String"
+    }
+  ],
+  "constraints": [
+    {
+      "name": "unique_name",
+      "definition": "UNIQUE (code) ON CONFLICT REPLACE"
+    }
+  ]
+}

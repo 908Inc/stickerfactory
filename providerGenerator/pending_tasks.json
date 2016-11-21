@@ -1,0 +1,32 @@
+{
+  "documentation": "Pending tasks",
+  "fields": [
+    {
+      "documentation": "Task category",
+      "name": "category",
+      "type": "String"
+    },
+    {
+      "documentation": "Task action",
+      "name": "action",
+      "type": "String"
+    },
+    {
+      "documentation": "Task value",
+      "name": "value",
+      "type": "String"
+    },
+    {
+      "documentation": "Is task waiting for execution",
+      "name": "isPending",
+      "type": "Boolean",
+      "defaultValue": 1
+    }
+  ],
+  "constraints": [
+    {
+      "name": "unique_action",
+      "definition": "UNIQUE (category, action, value) ON CONFLICT REPLACE"
+    }
+  ]
+}

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_toLeftOf="@+id/clear_button"
+        android:layout_toStartOf="@+id/clear_button">
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/recycler_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:overScrollMode="never"/>
+
+        <com.bartoszlipinski.recyclerviewheader2.RecyclerViewHeader
+            android:id="@+id/header"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <GridView
+                android:id="@+id/grid"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+
+            <View
+                android:id="@+id/recent_divider"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_below="@+id/grid"
+                android:layout_marginLeft="8dp"
+                android:layout_marginRight="8dp"
+                android:background="#606c6c6c"/>
+
+        </com.bartoszlipinski.recyclerviewheader2.RecyclerViewHeader>
+    </FrameLayout>
+
+
+    <ImageView
+        android:id="@+id/clear_button"
+        android:layout_width="@dimen/sp_backspace_column_width"
+        android:layout_height="@dimen/sp_backspace_column_width"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:contentDescription="@null"
+        android:scaleType="center"
+        android:src="@drawable/sp_ic_backspace"/>
+
+</RelativeLayout>

@@ -1,0 +1,60 @@
+{
+  "documentation": "Packs list",
+  "fields": [
+    {
+      "documentation": "Pack name",
+      "name": "name",
+      "type": "String"
+    },
+    {
+      "documentation": "Pack order",
+      "name": "pack_order",
+      "type": "Integer",
+      "defaultValue": 0
+    },
+    {
+      "documentation": "Pack title",
+      "name": "title",
+      "type": "String"
+    },
+    {
+      "documentation": "Pack Artist",
+      "name": "artist",
+      "type": "String"
+    },
+    {
+      "documentation": "Pack price",
+      "name": "price",
+      "type": "Float"
+    },
+    {
+      "documentation": "Pack status",
+      "name": "status",
+      "type": "enum",
+      "enumName": "Status",
+      "enumValues": [
+        "ACTIVE",
+        "INACTIVE"
+      ],
+      "defaultValue": 0
+    },
+    {
+      "documentation": "Is pack available on subscription",
+      "name": "subscription",
+      "type": "Boolean",
+      "defaultValue": 0
+    },
+    {
+      "documentation": "Pack lat modify date",
+      "name": "last_modify_date",
+      "type": "Long",
+      "defaultValue": 0
+    }
+  ],
+  "constraints": [
+    {
+      "name": "unique_name",
+      "definition": "UNIQUE (name) ON CONFLICT REPLACE"
+    }
+  ]
+}

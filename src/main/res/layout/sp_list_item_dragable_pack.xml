@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    android:id="@+id/container"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/material_72">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="8"/>
+
+        <ImageView
+            android:id="@+id/delete"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="2"
+            android:scaleType="centerInside"
+            android:background="@drawable/sp_list_item_remove_bg"
+            android:src="@drawable/sp_ic_delete"/>
+    </LinearLayout>
+
+    <RelativeLayout
+        android:id="@+id/front_view_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/sp_list_item_front_selector">
+
+        <ImageView
+            android:id="@+id/drag_handle"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:padding="@dimen/material_16"
+            android:scaleType="centerInside"
+            android:src="@drawable/sp_ic_reorder"/>
+
+        <ImageView
+            android:id="@+id/pack_image"
+            android:layout_width="@dimen/material_40"
+            android:layout_toRightOf="@+id/drag_handle"
+            android:layout_height="match_parent"
+            android:layout_marginLeft="@dimen/material_16"
+            android:scaleType="centerInside"/>
+
+        <LinearLayout
+            android:id="@+id/text_container"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginLeft="@dimen/material_16"
+            android:layout_toRightOf="@+id/pack_image"
+            android:gravity="center_vertical"
+            android:orientation="vertical"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true">
+
+            <TextView
+                android:id="@+id/pack_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:singleLine="true"
+                android:textColor="@color/sp_primary_text"
+                android:textSize="@dimen/text_16"
+                tools:text="Title"/>
+
+            <TextView
+                android:id="@+id/pack_artist"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:singleLine="true"
+                android:textColor="@color/sp_secondary_text"
+                android:textSize="@dimen/text_14"
+                tools:text="Artist"/>
+
+        </LinearLayout>
+    </RelativeLayout>
+</RelativeLayout>
