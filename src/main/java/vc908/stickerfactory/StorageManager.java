@@ -894,44 +894,46 @@ public class StorageManager extends PreferenceHelper {
     @Nullable
     public TasksManager.Task getFirstPendingTask() {
         TasksManager.Task task = null;
-        PendingTasksCursor cursor = new PendingTasksSelection()
-                .ispending(true)
-                .limit(1)
-                .query(mContext.getContentResolver());
-        if (cursor.moveToFirst()) {
-            try {
-                // TODO remove intDef?
-                @TasksManager.TaskCategory int category = TasksManager.TASK_CATEGORY_UNKNOWN;
-                switch (Integer.valueOf(cursor.getCategory())) {
-                    case TasksManager.TASK_CATEGORY_PURCHASE_PACK:
-                        category = TasksManager.TASK_CATEGORY_PURCHASE_PACK;
-                        break;
-                    case TasksManager.TASK_CATEGORY_HIDE_PACK:
-                        category = TasksManager.TASK_CATEGORY_HIDE_PACK;
-                        break;
-                    case TasksManager.TASK_CATEGORY_SEND_USER_DATA:
-                        category = TasksManager.TASK_CATEGORY_SEND_USER_DATA;
-                        break;
-                    case TasksManager.TASK_CATEGORY_SEND_ERROR:
-                        category = TasksManager.TASK_CATEGORY_SEND_ERROR;
-                        break;
-                    case TasksManager.TASK_CATEGORY_SEND_WARNING:
-                        category = TasksManager.TASK_CATEGORY_SEND_WARNING;
-                        break;
-                    case TasksManager.TASK_CATEGORY_SEND_TOKEN:
-                        category = TasksManager.TASK_CATEGORY_SEND_TOKEN;
-                        break;
-                    default:
+        if (mContext != null) {
+            PendingTasksCursor cursor = new PendingTasksSelection()
+                    .ispending(true)
+                    .limit(1)
+                    .query(mContext.getContentResolver());
+            if (cursor.moveToFirst()) {
+                try {
+                    // TODO remove intDef?
+                    @TasksManager.TaskCategory int category = TasksManager.TASK_CATEGORY_UNKNOWN;
+                    switch (Integer.valueOf(cursor.getCategory())) {
+                        case TasksManager.TASK_CATEGORY_PURCHASE_PACK:
+                            category = TasksManager.TASK_CATEGORY_PURCHASE_PACK;
+                            break;
+                        case TasksManager.TASK_CATEGORY_HIDE_PACK:
+                            category = TasksManager.TASK_CATEGORY_HIDE_PACK;
+                            break;
+                        case TasksManager.TASK_CATEGORY_SEND_USER_DATA:
+                            category = TasksManager.TASK_CATEGORY_SEND_USER_DATA;
+                            break;
+                        case TasksManager.TASK_CATEGORY_SEND_ERROR:
+                            category = TasksManager.TASK_CATEGORY_SEND_ERROR;
+                            break;
+                        case TasksManager.TASK_CATEGORY_SEND_WARNING:
+                            category = TasksManager.TASK_CATEGORY_SEND_WARNING;
+                            break;
+                        case TasksManager.TASK_CATEGORY_SEND_TOKEN:
+                            category = TasksManager.TASK_CATEGORY_SEND_TOKEN;
+                            break;
+                        default:
+                    }
+                    task = new TasksManager.Task(
+                            category,
+                            cursor.getAction(),
+                            cursor.getValue()
+                    );
+                } catch (NumberFormatException ignored) {
                 }
-                task = new TasksManager.Task(
-                        category,
-                        cursor.getAction(),
-                        cursor.getValue()
-                );
-            } catch (NumberFormatException ignored) {
             }
+            cursor.close();
         }
-        cursor.close();
         return task;
     }
 
