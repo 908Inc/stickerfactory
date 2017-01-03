@@ -432,4 +432,18 @@ public class Utils {
     public static boolean randomBoolean() {
         return Math.random() < 0.5f;
     }
+
+
+    /**
+     * Check, is requested permissions granted
+     *
+     * @param permission Permission name
+     * @param context    Context
+     * @return Is permission granted
+     */
+    public static boolean isPermissionGranted(String permission, Context context) {
+        PackageManager pm = context.getPackageManager();
+        return pm.checkPermission(permission, context.getPackageName()) == PackageManager.PERMISSION_GRANTED;
+    }
+
 }

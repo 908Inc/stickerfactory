@@ -61,12 +61,14 @@ public class ShopWebViewActivity extends BaseActivity implements BillingProcesso
     private static final String JS_METHOD_PURCHASE_FAIL = "onPackPurchaseFail()";
     private static final String JS_METHOD_REMOVE_SUCCESS = "onPackRemoveSuccess()";
     private static final String JS_METHOD_REMOVE_FAIL = "onPackRemoveFail()";
+    private static final String JS_METHOD_PURCHASE_SUCCESS_WITHOUT_CLOSE = "onPackPurchaseSuccessWithoutClose()";
 
     @StringDef({
             JS_METHOD_PURCHASE_SUCCESS,
             JS_METHOD_PURCHASE_FAIL,
             JS_METHOD_REMOVE_SUCCESS,
-            JS_METHOD_REMOVE_FAIL
+            JS_METHOD_REMOVE_FAIL,
+            JS_METHOD_PURCHASE_SUCCESS_WITHOUT_CLOSE
     })
     @interface JsMethod {
     }
@@ -191,17 +193,21 @@ public class ShopWebViewActivity extends BaseActivity implements BillingProcesso
         if (Utils.isNetworkAvailable(this)) {
             Prices prices = StickersManager.getPrices();
             if (prices != null) {
-                if (!TextUtils.isEmpty(prices.getSkuB()) && !TextUtils.isEmpty(prices.getSkuC())) {
-                    mBillingProcessor = BillingManager.getInstance().getBillingProcessor(this, this);
-                    setInProgress(true);
-                } else {
-                    if (prices.getPricePointB() != null && !TextUtils.isEmpty(prices.getPricePointB().getLabel())) {
-                        priceBLabel = prices.getPricePointB().getLabel();
-                    }
-                    if (prices.getPricePointC() != null && !TextUtils.isEmpty(prices.getPricePointC().getLabel())) {
-                        priceCLabel = prices.getPricePointC().getLabel();
-                    }
+                if (prices.getPricePointB() != null && !TextUtils.isEmpty(prices.getPricePointB().getLabel())) {
+                    priceBLabel = prices.getPricePointB().getLabel();
+                }
+                if (prices.getPricePointC() != null && !TextUtils.isEmpty(prices.getPricePointC().getLabel())) {
+                    priceCLabel = prices.getPricePointC().getLabel();
+                }
+                if (!TextUtils.isEmpty(priceBLabel) && !TextUtils.isEmpty(priceCLabel)) {
                     loadShop();
+                } else {
+                    // TODO add permissions check for Android M
+                    if (Utils.isPermissionGranted("com.android.vending.BILLING", this)) {
+                        mBillingProcessor = BillingManager.getInstance().getBillingProcessor(this, this);
+                    } else {
+                        loadShop();
+                    }
                 }
             } else {
                 loadShop();
@@ -338,14 +344,7 @@ public class ShopWebViewActivity extends BaseActivity implements BillingProcesso
     @Override
     public void onBillingInitialized() {
         setInProgress(false);
-        Prices prices = StickersManager.getPrices();
-        if (prices != null) {
-            priceBLabel = getProductPrice(prices.getSkuB());
-            priceCLabel = getProductPrice(prices.getSkuC());
-            loadShop();
-        } else {
-            showError();
-        }
+        loadShop();
     }
 
     @Override
@@ -385,6 +384,25 @@ public class ShopWebViewActivity extends BaseActivity implements BillingProcesso
         }
 
         @JavascriptInterface
+        public void purchasePack(String productId) {
+            if (mContextReference.get() != null) {
+                mContextReference.get().mHandler.post(() -> mContextReference.get().purchase(productId));
+            }
+        }
+
+        @JavascriptInterface
+        @Nullable
+        public String getProductLabel(String productId) {
+            // TODO check this by threads corruption
+            if (mContextReference.get() != null) {
+                return mContextReference.get().getProductPrice(productId);
+            } else {
+                return null;
+            }
+        }
+
+
+        @JavascriptInterface
         public void setInProgress(boolean inProgress) {
             if (mContextReference.get() != null) {
                 mContextReference.get().mHandler.post(() -> mContextReference.get().setInProgress(inProgress));
@@ -406,6 +424,14 @@ public class ShopWebViewActivity extends BaseActivity implements BillingProcesso
         }
     }
 
+    private void purchase(String productId) {
+        if (mBillingProcessor != null) {
+            mBillingProcessor.purchase(this, productId);
+        } else {
+            executeJs(JS_METHOD_PURCHASE_FAIL);
+        }
+    }
+
     private void purchase(String packTitle, String packName, String pricePoint) {
         packForPurchase = packName;
         StickersPack.UserStatus packUserStatus = StorageManager.getInstance().getPackStatus(packName);
@@ -419,15 +445,7 @@ public class ShopWebViewActivity extends BaseActivity implements BillingProcesso
         } else {
             Prices prices = StickersManager.getPrices();
             if (prices != null) {
-                if (mBillingProcessor != null
-                        && !TextUtils.isEmpty(prices.getSkuB())
-                        && "B".equals(pricePoint)) {
-                    mBillingProcessor.purchase(this, prices.getSkuB());
-                } else if (mBillingProcessor != null
-                        && !TextUtils.isEmpty(prices.getSkuC())
-                        && "C".equals(pricePoint)) {
-                    mBillingProcessor.purchase(this, prices.getSkuC());
-                } else if (prices.getPricePointB() != null
+                if (prices.getPricePointB() != null
                         && "B".equals(pricePoint)) {
                     onPurchase(packTitle, packName, prices.getPricePointB());
                 } else if (prices.getPricePointC() != null
@@ -456,7 +474,7 @@ public class ShopWebViewActivity extends BaseActivity implements BillingProcesso
             case TasksManager.TASK_CATEGORY_PURCHASE_PACK:
                 if (event.getPendingTask().getAction().equals(packForPurchase)) {
                     if (event.isSuccess()) {
-                        executeJs(JS_METHOD_PURCHASE_SUCCESS);
+                        executeJs(JS_METHOD_PURCHASE_SUCCESS_WITHOUT_CLOSE);
                     } else {
                         executeJs(JS_METHOD_PURCHASE_FAIL);
                         showCantProcessToast();
@@ -481,7 +499,7 @@ public class ShopWebViewActivity extends BaseActivity implements BillingProcesso
     }
 
     @Nullable
-    public String getProductPrice(String sku) {
+    private String getProductPrice(String sku) {
         if (TextUtils.isEmpty(sku) || mBillingProcessor == null) {
             return null;
         } else {

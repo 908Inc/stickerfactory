@@ -9,8 +9,6 @@ import android.support.annotation.Nullable;
 public class Prices {
     private PricePoint pricePointB;
     private PricePoint pricePointC;
-    private String skuB;
-    private String skuC;
 
     public Prices setPricePointB(@NonNull String value, float label) {
         this.pricePointB = PricePoint.create(value, label, PricePoint.PRICE_TYPE_B);
@@ -19,17 +17,6 @@ public class Prices {
 
     public Prices setPricePointC(@NonNull String value, float label) {
         this.pricePointC = PricePoint.create(value, label, PricePoint.PRICE_TYPE_C);
-        return this;
-    }
-
-
-    public Prices setSkuC(String skuC) {
-        this.skuC = skuC;
-        return this;
-    }
-
-    public Prices setSkuB(String skuB) {
-        this.skuB = skuB;
         return this;
     }
 
@@ -42,16 +29,5 @@ public class Prices {
     public PricePoint getPricePointB() {
         return pricePointB;
     }
-
-    @Nullable
-    public String getSkuC() {
-        return skuC;
-    }
-
-    @Nullable
-    public String getSkuB() {
-        return skuB;
-    }
-
 
 }
