@@ -20,11 +20,11 @@ public class StickersResponse extends NetworkResponseModel<LinkedList<StickersPa
 
     public static class ShopMetaInfo {
         @Expose
-        @SerializedName("shop_last_modified")
-        private long shopContentLastModified;
+        @SerializedName("new_shop_content")
+        private boolean isShopHasNewContent;
 
-        public long getShopContentLastModified() {
-            return shopContentLastModified;
+        public boolean isShopHasNewContent() {
+            return isShopHasNewContent;
         }
     }
 

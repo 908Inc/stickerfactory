@@ -18,7 +18,6 @@ import android.support.v4.app.LoaderManager;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
-import android.support.v4.view.ViewPager;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -43,7 +42,6 @@ import vc908.stickerfactory.StorageManager;
 import vc908.stickerfactory.analytics.AnalyticsManager;
 import vc908.stickerfactory.analytics.IAnalytics;
 import vc908.stickerfactory.events.PackTabImageDownloadedEvent;
-import vc908.stickerfactory.events.PacksLoadedEvent;
 import vc908.stickerfactory.provider.packs.PacksColumns;
 import vc908.stickerfactory.provider.packs.PacksCursor;
 import vc908.stickerfactory.provider.packs.Status;
@@ -53,8 +51,7 @@ import vc908.stickerfactory.ui.OnStickerFileSelectedListener;
 import vc908.stickerfactory.ui.OnStickerSelectedListener;
 import vc908.stickerfactory.ui.SimpleStickerSelectedLister;
 import vc908.stickerfactory.ui.activity.CollectionsActivity;
-import vc908.stickerfactory.ui.view.BadgedShopIcon;
-import vc908.stickerfactory.ui.view.BadgedStickersTabIcon;
+import vc908.stickerfactory.ui.view.BadgedButton;
 import vc908.stickerfactory.ui.view.SquareImageView;
 import vc908.stickerfactory.ui.view.SwipeToggleViewPager;
 import vc908.stickerfactory.utils.CompatUtils;
@@ -87,9 +84,9 @@ public class StickersFragment extends Fragment implements LoaderManager.LoaderCa
     private View contentView;
     private List<String> firstTabs = new ArrayList<>();
     private SwipeToggleViewPager mViewPager;
-    private BadgedShopIcon shopView;
+    private BadgedButton shopView;
     private String packToSelect;
-    private OnShopButtonClickedListener onShopButtonClickedListener;
+    private List<OnShopButtonClickedListener> shopClickListeners = new ArrayList<>();
     private int fulSizeEmptyImageRes;
     private SearchStickersFragment searchStickersfragment;
     private View tabsContainer;
@@ -119,27 +116,11 @@ public class StickersFragment extends Fragment implements LoaderManager.LoaderCa
         mViewPager = (SwipeToggleViewPager) contentView.findViewById(R.id.view_pager);
         mViewPager.setBackgroundColor(ContextCompat.getColor(getActivity(), R.color.sp_stickers_list_bg));
         tabPadding = getResources().getDimensionPixelSize(R.dimen.sp_sticker_tab_padding);
-        shopView = (BadgedShopIcon) contentView.findViewById(R.id.btn_shop);
+        shopView = (BadgedButton) contentView.findViewById(R.id.btn_shop);
         tabSize = getResources().getDimensionPixelSize(R.dimen.sp_sticker_tab_size);
         initFirstTabs();
         mPagerAdapter = new PagerAdapterWithImages(getChildFragmentManager());
         mViewPager.setAdapter(mPagerAdapter);
-        mViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
-            @Override
-            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-
-            }
-
-            @Override
-            public void onPageSelected(int position) {
-                StorageManager.getInstance().storePackMarkedStatus(stickerTabs.get(position), false);
-            }
-
-            @Override
-            public void onPageScrollStateChanged(int state) {
-
-            }
-        });
         updateTabs();
         return contentView;
     }
@@ -211,7 +192,6 @@ public class StickersFragment extends Fragment implements LoaderManager.LoaderCa
         }
         mPagerAdapter.notifyDataSetChanged();
         updateTabs();
-        EventBus.getDefault().post(new PacksLoadedEvent());
     }
 
     /**
@@ -261,7 +241,6 @@ public class StickersFragment extends Fragment implements LoaderManager.LoaderCa
                     ));
             shopView.setOnClickListener(v -> showShop());
             shopView.setVisibility(View.VISIBLE);
-            shopView.updateBadgeStatus();
         } else {
             shopView.setVisibility(View.GONE);
         }
@@ -280,10 +259,10 @@ public class StickersFragment extends Fragment implements LoaderManager.LoaderCa
     }
 
     private void showShop() {
+        StorageManager.getInstance().storeIsShopHasNewContent(false);
         shopView.setIsMarked(false);
-        StorageManager.getInstance().storeShopVisited();
-        if (onShopButtonClickedListener != null) {
-            onShopButtonClickedListener.onShopButtonClicked();
+        for (OnShopButtonClickedListener shopClickListener : shopClickListeners) {
+            shopClickListener.onShopButtonClicked();
         }
         getActivity().startActivity(new Intent(getActivity(), StickersManager.shopClass));
     }
@@ -327,8 +306,10 @@ public class StickersFragment extends Fragment implements LoaderManager.LoaderCa
         this.onStickerFileSelectedListener = listener;
     }
 
-    public void setOnShopButtonCickedListener(OnShopButtonClickedListener listener) {
-        this.onShopButtonClickedListener = listener;
+    public void addOnShopButtonCickedListener(OnShopButtonClickedListener listener) {
+        if (listener != null) {
+            shopClickListeners.add(listener);
+        }
     }
 
     /**
@@ -441,13 +422,19 @@ public class StickersFragment extends Fragment implements LoaderManager.LoaderCa
         }
     };
 
+    public void setShopButtonMarked(boolean isMarked) {
+        if (shopView != null) {
+            shopView.setIsMarked(isMarked);
+        }
+    }
+
     /**
      * Stickers pager adapter.
      * Handle stickers fragment and sp_tab images
      */
     private class PagerAdapterWithImages extends FragmentStatePagerAdapter {
         private final Drawable tabPlaceholderDrawable;
-        Map<String, WeakReference<BadgedStickersTabIcon>> tabs = new HashMap<>();
+        Map<String, WeakReference<ImageView>> tabs = new HashMap<>();
 
         public PagerAdapterWithImages(FragmentManager childFragmentManager) {
             super(childFragmentManager);
@@ -555,7 +542,7 @@ public class StickersFragment extends Fragment implements LoaderManager.LoaderCa
         }
 
         public View getTabView(int position) {
-            BadgedStickersTabIcon tabView = new BadgedStickersTabIcon(getContext());
+            ImageView tabView = new ImageView(getContext());
             tabView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
             tabView.setPadding(tabPadding, tabPadding, tabPadding, tabPadding);
             int size = getResources().getDimensionPixelSize(R.dimen.sp_sticker_tab_size);
@@ -576,13 +563,12 @@ public class StickersFragment extends Fragment implements LoaderManager.LoaderCa
             if (getTabImageColorFilter(position) != 0) {
                 tabView.setColorFilter(ContextCompat.getColor(getContext(), getTabImageColorFilter(position)));
             }
-            tabView.setPackName(packName);
             tabView.setOnClickListener(v -> mViewPager.setCurrentItem(position));
             tabView.setBackgroundResource(R.drawable.sp_tab_bg_selector);
             return tabView;
         }
 
-        private void showTabImage(String packName, BadgedStickersTabIcon tabView) {
+        private void showTabImage(String packName, ImageView tabView) {
             File tabFile = StorageManager.getInstance().getImageFile(NamesHelper.getTabIconName(packName));
             if (tabFile != null && tabFile.exists()) {
                 Glide.with(StickersFragment.this)
@@ -597,7 +583,7 @@ public class StickersFragment extends Fragment implements LoaderManager.LoaderCa
 
         public void reloadPackTabImage(String packName) {
             if (!TextUtils.isEmpty(packName) && tabs.get(packName) != null) {
-                BadgedStickersTabIcon tabView = tabs.get(packName).get();
+                ImageView tabView = tabs.get(packName).get();
                 if (tabView != null) {
                     showTabImage(packName, tabView);
                 }

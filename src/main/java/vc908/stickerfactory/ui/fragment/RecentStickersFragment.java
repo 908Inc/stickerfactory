@@ -13,11 +13,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
-import de.greenrobot.event.EventBus;
 import vc908.stickerfactory.Constants;
 import vc908.stickerfactory.R;
 import vc908.stickerfactory.StorageManager;
-import vc908.stickerfactory.events.RecentStickersCountChangedEvent;
 import vc908.stickerfactory.provider.recentlystickers.RecentlyStickersColumns;
 
 /**
@@ -63,7 +61,6 @@ public class RecentStickersFragment extends StickersListFragment {
         updateEmptyViewState();
         if (StorageManager.recentStickersCount != cursor.getCount()) {
             StorageManager.recentStickersCount = cursor.getCount();
-            EventBus.getDefault().post(new RecentStickersCountChangedEvent());
         }
         progress.setVisibility(View.GONE);
     }
