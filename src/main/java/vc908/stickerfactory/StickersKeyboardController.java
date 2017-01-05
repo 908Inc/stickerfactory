@@ -38,9 +38,11 @@ import java.util.List;
 
 import de.greenrobot.event.EventBus;
 import vc908.stickerfactory.events.KeyboardVisibilityChangedEvent;
+import vc908.stickerfactory.events.ShopHasNewContentFlagChangedEvent;
 import vc908.stickerfactory.model.SearchResultItem;
+import vc908.stickerfactory.ui.OnShopButtonClickedListener;
 import vc908.stickerfactory.ui.fragment.StickersFragment;
-import vc908.stickerfactory.ui.view.BadgedStickersButton;
+import vc908.stickerfactory.ui.view.BadgedButton;
 import vc908.stickerfactory.ui.view.SquareHeightImageView;
 import vc908.stickerfactory.ui.view.StickersKeyboardLayout;
 import vc908.stickerfactory.utils.KeyboardUtils;
@@ -57,7 +59,7 @@ public class StickersKeyboardController {
     private WeakReference<View> contentContainer;
     private WeakReference<View> stickersFrame;
     private WeakReference<StickersKeyboardLayout> stickersKeyboardLayout;
-    private WeakReference<BadgedStickersButton> stickersButton;
+    private WeakReference<BadgedButton> stickersButton;
     private WeakReference<EditText> chatEdit;
     private WeakReference<StickersFragment> stickersFragment;
     private WeakReference<RecyclerView> suggestContainer;
@@ -91,6 +93,16 @@ public class StickersKeyboardController {
             actionBarHeight = TypedValue.complexToDimensionPixelSize(tv.data, contextReference.getResources().getDisplayMetrics());
         } else {
             actionBarHeight = Utils.dp(48, contextReference);
+        }
+        EventBus.getDefault().register(this);
+    }
+
+    public void onEvent(ShopHasNewContentFlagChangedEvent event) {
+        if (stickersButton != null && stickersButton.get() != null) {
+            stickersButton.get().setIsMarked(event.isHasNewContent());
+        }
+        if (stickersFragment != null && stickersFragment.get() != null) {
+            stickersFragment.get().setShopButtonMarked(event.isHasNewContent());
         }
     }
 
@@ -131,7 +143,7 @@ public class StickersKeyboardController {
     };
 
 
-    private void setStickersButton(BadgedStickersButton stickersButton) {
+    private void setStickersButton(BadgedButton stickersButton) {
         this.stickersButton = new WeakReference<>(stickersButton);
         if (contextReference != null && contextReference.get() != null) {
             stickersButton.setOnClickListener(v -> {
@@ -165,8 +177,18 @@ public class StickersKeyboardController {
                     }
                 }
         );
+        stickersFragment.addOnShopButtonCickedListener(shopButtonClickListener);
         stickersFragment.setExternalSearchEditClickListener(searchEditClickListener);
     }
+
+    private OnShopButtonClickedListener shopButtonClickListener = new OnShopButtonClickedListener() {
+        @Override
+        public void onShopButtonClicked() {
+            if (stickersButton != null && stickersButton.get() != null) {
+                stickersButton.get().setIsMarked(false);
+            }
+        }
+    };
 
     private View.OnClickListener searchEditClickListener = v -> {
         if (keyboardVisibilityChangeIntentListener != null) {
@@ -588,7 +610,7 @@ public class StickersKeyboardController {
         private View stickersFrame;
         private StickersKeyboardLayout stickersKeyboardLayout;
         private EditText chatEdit;
-        private BadgedStickersButton stickersButton;
+        private BadgedButton stickersButton;
         private StickersFragment stickersFragment;
         private RecyclerView suggestContainer;
         private int stickersIcon;
@@ -618,7 +640,7 @@ public class StickersKeyboardController {
             return this;
         }
 
-        public Builder setStickersButton(@NonNull BadgedStickersButton stickersButton) {
+        public Builder setStickersButton(@NonNull BadgedButton stickersButton) {
             this.stickersButton = stickersButton;
             return this;
         }

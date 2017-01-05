@@ -30,7 +30,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
-import vc908.stickerfactory.events.ShopContentLastModifiedUpdatedEvent;
+import vc908.stickerfactory.events.ShopHasNewContentFlagChangedEvent;
 import vc908.stickerfactory.interceptors.NetworkHeaderInterceptor;
 import vc908.stickerfactory.model.StickersPack;
 import vc908.stickerfactory.model.response.ContentResponse;
@@ -158,10 +158,10 @@ public final class NetworkManager {
                                     Logger.w(TAG, "Data is null for user packs");
                                 }
                                 if (response.getMetaInfo() != null) {
-                                    long contentLastModified = response.getMetaInfo().getShopContentLastModified();
-                                    if (contentLastModified > StorageManager.getInstance().getShopContentLastModified()) {
-                                        StorageManager.getInstance().storeShopContentLastModified(contentLastModified);
-                                        EventBus.getDefault().post(new ShopContentLastModifiedUpdatedEvent());
+                                    boolean isShopHasNewContent = response.getMetaInfo().isShopHasNewContent();
+                                    if (StorageManager.getInstance().isShopHasNewContent() != isShopHasNewContent) {
+                                        StorageManager.getInstance().storeIsShopHasNewContent(isShopHasNewContent);
+                                        EventBus.getDefault().post(new ShopHasNewContentFlagChangedEvent(isShopHasNewContent));
                                     }
                                 }
                             },

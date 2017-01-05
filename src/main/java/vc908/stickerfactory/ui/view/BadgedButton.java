@@ -13,40 +13,42 @@ import android.util.AttributeSet;
 import android.widget.ImageButton;
 
 import vc908.stickerfactory.R;
+import vc908.stickerfactory.StorageManager;
 import vc908.stickerfactory.utils.Utils;
 
 /**
  * @author Dmitry Nezhydenko (dehimb@gmail.com)
  */
-public abstract class BaseBadgedStickersButton extends ImageButton {
+public class BadgedButton extends ImageButton {
 
     private Bitmap markerBitmap;
     private boolean isMarked;
     private int padding;
     private boolean isPaddingRecalculated;
 
-    public BaseBadgedStickersButton(Context context) {
+    public BadgedButton(Context context) {
         super(context);
         init();
     }
 
-    public BaseBadgedStickersButton(Context context, AttributeSet attrs) {
+    public BadgedButton(Context context, AttributeSet attrs) {
         super(context, attrs);
         init();
     }
 
-    public BaseBadgedStickersButton(Context context, AttributeSet attrs, int defStyleAttr) {
+    public BadgedButton(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         init();
     }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    public BaseBadgedStickersButton(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
+    public BadgedButton(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
         init();
     }
 
     private void init() {
+        isMarked = StorageManager.getInstance().isShopHasNewContent();
         padding = (int) getContext().getResources().getDimension(R.dimen.material_8);
         Drawable markerLayers = ContextCompat.getDrawable(getContext(), getDrawableMarker());
         int markerSize = (int) getContext().getResources().getDimension(R.dimen.sp_tab_indicator_size);
@@ -65,7 +67,7 @@ public abstract class BaseBadgedStickersButton extends ImageButton {
                     padding = Utils.dp(8, getContext());
                 } else if (getMeasuredWidth() >= Utils.dp(40, getContext())) {
                     padding = Utils.dp(4, getContext());
-                }else{
+                } else {
                     padding = 0;
                 }
                 isPaddingRecalculated = true;
@@ -74,7 +76,9 @@ public abstract class BaseBadgedStickersButton extends ImageButton {
     }
 
     @DrawableRes
-    protected abstract int getDrawableMarker();
+    protected int getDrawableMarker() {
+        return R.drawable.sp_tab_badge;
+    }
 
     @Override
     protected void onDraw(@NonNull Canvas canvas) {

@@ -33,9 +33,7 @@ import rx.schedulers.Schedulers;
 import vc908.stickerfactory.analytics.AnalyticsManager;
 import vc908.stickerfactory.analytics.IAnalytics;
 import vc908.stickerfactory.billing.Prices;
-import vc908.stickerfactory.events.PackMarkStatusChangedEvent;
 import vc908.stickerfactory.events.PackTabImageDownloadedEvent;
-import vc908.stickerfactory.events.UserShopContentVisitLastModifiedUpdatedEvent;
 import vc908.stickerfactory.model.Sticker;
 import vc908.stickerfactory.model.StickersPack;
 import vc908.stickerfactory.provider.StickersProvider;
@@ -85,11 +83,8 @@ public class StorageManager extends PreferenceHelper {
     private static final String PREF_KEY_USER_DATA = "pref_key_user_data";
     private static final String PREF_KEY_PRICE_POINTS = "pref_key_pricepoints";
     private static final String PREF_KEY_CONTENT_PACK_NAME_PREFIX = "pref_key_content_pack_name_prefix_";
-    private static final String PREF_KEY_SHOP_CONTENT_LAST_MODIFIED = "pref_key_shop_content_last_modified";
-    private static final String PREF_KEY_USER_SHOP_CONTENT_VISIT_LAST_MODIFIED = "pref_key_user_shop_content_visit_last_modified";
+    private static final String PREF_KEY_SHOP_HAS_NEW_CONTENT = "sp_shop_has_new_content";
     private static final String PREF_KEY_PACK_TO_SHOW_NAME = "pref_key_pack_to_show";
-    private static final String PREF_KEY_MARKED_PACK_PREFIX = "pref_key_marked_pack_prefix_";
-    //    private static final String PREF_KEY_FILTERS = "pref_key_filters";
     private static final String PREF_KEY_USER_SPLIT_GROUP = "pref_key_user_split_group";
 
     private final AsyncQueryHandler asyncQueryHandler;
@@ -512,8 +507,7 @@ public class StorageManager extends PreferenceHelper {
     private void clearUserData() {
         removeValue(PREF_KEY_USER_SUBSCRIPTION);
         removeValue(PREF_KEY_USER_DATA);
-        removeValue(PREF_KEY_SHOP_CONTENT_LAST_MODIFIED);
-        removeValue(PREF_KEY_USER_SHOP_CONTENT_VISIT_LAST_MODIFIED);
+        removeValue(PREF_KEY_SHOP_HAS_NEW_CONTENT);
         removeValue(PREF_KEY_PACK_TO_SHOW_NAME);
         mContext.getContentResolver().delete(PacksColumns.CONTENT_URI, null, null);
         mContext.getContentResolver().delete(StickersColumns.CONTENT_URI, null, null);
@@ -598,39 +592,10 @@ public class StorageManager extends PreferenceHelper {
      */
     private void storePack(StickersPack pack) {
         incrementPacksOrder(1);
-        storePackMarkedStatus(pack.getName(), true);
         mContext.getContentResolver().insert(
                 PacksColumns.CONTENT_URI,
                 createPackContentValues(pack, true)
         );
-    }
-
-    /**
-     * Update store visited if need
-     */
-    public void storeShopVisited() {
-        long shopContentLastModified = getShopContentLastModified();
-        if (shopContentLastModified != getUserShopContentVisitLastModifiedDate()) {
-            storeUserShopContentVisitLastModifies(shopContentLastModified);
-            EventBus.getDefault().post(new UserShopContentVisitLastModifiedUpdatedEvent());
-        }
-    }
-
-    /**
-     * Check is shop has new content, which user don't see
-     *
-     * @return Result of check
-     */
-    public boolean isShopHasNewContent() {
-        return StorageManager.getInstance().getShopContentLastModified()
-                > StorageManager.getInstance().getUserShopContentVisitLastModifiedDate();
-    }
-
-    /**
-     * Calculate recent stickers count
-     */
-    public void updateRecentStickersCount() {
-        recentStickersCount = new RecentlyStickersSelection().query(mContext.getContentResolver()).getCount();
     }
 
     /**
@@ -1297,40 +1262,12 @@ public class StorageManager extends PreferenceHelper {
         return packName;
     }
 
-    /**
-     * Get last modified date for shop content
-     *
-     * @return Last modified date
-     */
-    public long getShopContentLastModified() {
-        return getLongValue(PREF_KEY_SHOP_CONTENT_LAST_MODIFIED);
+    public boolean isShopHasNewContent() {
+        return getBooleanValue(PREF_KEY_SHOP_HAS_NEW_CONTENT);
     }
 
-    /**
-     * Store last modified date for shop content
-     *
-     * @param date Last modified date
-     */
-    public void storeShopContentLastModified(long date) {
-        storeValue(PREF_KEY_SHOP_CONTENT_LAST_MODIFIED, date);
-    }
-
-    /**
-     * Get last modified date for shop content, which user visited
-     *
-     * @return Last modified date
-     */
-    public long getUserShopContentVisitLastModifiedDate() {
-        return getLongValue(PREF_KEY_USER_SHOP_CONTENT_VISIT_LAST_MODIFIED);
-    }
-
-    /**
-     * Store last modified date for shop content, which user visited
-     *
-     * @param date Last modified date
-     */
-    public void storeUserShopContentVisitLastModifies(long date) {
-        storeValue(PREF_KEY_USER_SHOP_CONTENT_VISIT_LAST_MODIFIED, date);
+    public void storeIsShopHasNewContent(boolean isShopHasNewContent) {
+        storeValue(PREF_KEY_SHOP_HAS_NEW_CONTENT, isShopHasNewContent);
     }
 
     /**
@@ -1359,23 +1296,6 @@ public class StorageManager extends PreferenceHelper {
     }
 
     /**
-     * Store is pack marked
-     *
-     * @param packName Pack
-     * @param isMarked Is marked status
-     */
-    public void storePackMarkedStatus(String packName, boolean isMarked) {
-        if (getIsPackMarked(packName) != isMarked) {
-            storeValue(PREF_KEY_MARKED_PACK_PREFIX + packName, isMarked);
-            EventBus.getDefault().post(new PackMarkStatusChangedEvent(packName, isMarked));
-        }
-    }
-
-    public boolean getIsPackMarked(String packName) {
-        return getBooleanValue(PREF_KEY_MARKED_PACK_PREFIX + packName);
-    }
-
-    /**
      * Inner class for frequently used pack info
      */
     private class PackInfoHolder {
@@ -1394,4 +1314,12 @@ public class StorageManager extends PreferenceHelper {
     public void clearRecentEmoji() {
         mContext.getContentResolver().delete(RecentlyEmojiColumns.CONTENT_URI, null, null);
     }
+
+    /**
+     * Calculate recent stickers count
+     */
+    public void updateRecentStickersCount() {
+        recentStickersCount = new RecentlyStickersSelection().query(mContext.getContentResolver()).getCount();
+    }
+
 }
