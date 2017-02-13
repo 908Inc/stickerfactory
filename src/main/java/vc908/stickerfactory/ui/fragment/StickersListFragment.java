@@ -274,7 +274,7 @@ public class StickersListFragment extends Fragment implements LoaderManager.Load
         private Fragment mAdapterFragment;
         private final int padding;
         private final List<OnStickerSelectedListener> mStickerSelectedListeners;
-        private final OnStickerFileSelectedListener mStickerFileSelectedListener;
+        private OnStickerFileSelectedListener mStickerFileSelectedListener;
         private StickerPreviewDelegate stickerPreviewDelegate;
         private PorterDuffColorFilter selectedItemFilterColor;
         private boolean isStickerPreviewEnabled = true;

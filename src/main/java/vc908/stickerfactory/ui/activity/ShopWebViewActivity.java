@@ -1,6 +1,5 @@
 package vc908.stickerfactory.ui.activity;
 
-import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
@@ -8,7 +7,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.annotation.StringDef;
 import android.support.annotation.StringRes;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
@@ -25,6 +23,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.anjlab.android.iab.v3.BillingProcessor;
+import com.anjlab.android.iab.v3.Constants;
 import com.anjlab.android.iab.v3.SkuDetails;
 import com.anjlab.android.iab.v3.TransactionDetails;
 
@@ -62,16 +61,7 @@ public class ShopWebViewActivity extends BaseActivity implements BillingProcesso
     private static final String JS_METHOD_REMOVE_SUCCESS = "onPackRemoveSuccess()";
     private static final String JS_METHOD_REMOVE_FAIL = "onPackRemoveFail()";
     private static final String JS_METHOD_PURCHASE_SUCCESS_WITHOUT_CLOSE = "onPackPurchaseSuccessWithoutClose()";
-
-    @StringDef({
-            JS_METHOD_PURCHASE_SUCCESS,
-            JS_METHOD_PURCHASE_FAIL,
-            JS_METHOD_REMOVE_SUCCESS,
-            JS_METHOD_REMOVE_FAIL,
-            JS_METHOD_PURCHASE_SUCCESS_WITHOUT_CLOSE
-    })
-    @interface JsMethod {
-    }
+    private static final String JS_METHOD_SET_PRODUCT_PRICE_LABEL = "setProductPriceLabel(\"%s\")";
 
     private String packName;
     private WebView mWebView;
@@ -113,7 +103,14 @@ public class ShopWebViewActivity extends BaseActivity implements BillingProcesso
         }
     }
 
-    @SuppressLint({"SetJavaScriptEnabled", "AddJavascriptInterface"})
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (mBillingProcessor == null ||
+                !mBillingProcessor.handleActivityResult(requestCode, resultCode, data)) {
+            super.onActivityResult(requestCode, resultCode, data);
+        }
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -201,16 +198,14 @@ public class ShopWebViewActivity extends BaseActivity implements BillingProcesso
                 }
                 if (!TextUtils.isEmpty(priceBLabel) && !TextUtils.isEmpty(priceCLabel)) {
                     loadShop();
-                } else {
-                    // TODO add permissions check for Android M
-                    if (Utils.isPermissionGranted("com.android.vending.BILLING", this)) {
-                        mBillingProcessor = BillingManager.getInstance().getBillingProcessor(this, this);
-                    } else {
-                        loadShop();
-                    }
                 }
             } else {
-                loadShop();
+                // TODO add permissions check for Android M
+                if (Utils.isPermissionGranted("com.android.vending.BILLING", this)) {
+                    mBillingProcessor = BillingManager.getInstance().getBillingProcessor(this, this);
+                } else {
+                    loadShop();
+                }
             }
         } else {
             showError(R.string.sp_no_internet_connection);
@@ -327,18 +322,22 @@ public class ShopWebViewActivity extends BaseActivity implements BillingProcesso
 
     @Override
     public void onProductPurchased(String sku, TransactionDetails transactionDetails) {
-        purchasePack(packName, StickersPack.PurchaseType.ONEOFF);
+        purchasePack(packForPurchase, StickersPack.PurchaseType.ONEOFF);
         mBillingProcessor.consumePurchase(sku);
+        Toast.makeText(this, "Purchase success!", Toast.LENGTH_SHORT).show();
     }
 
     @Override
     public void onPurchaseHistoryRestored() {
-
     }
 
     @Override
-    public void onBillingError(int i, Throwable throwable) {
-        Toast.makeText(this, R.string.sp_cant_process_request, Toast.LENGTH_SHORT).show();
+    public void onBillingError(int errorCode, Throwable throwable) {
+        if (errorCode != Constants.BILLING_RESPONSE_RESULT_USER_CANCELED) {
+            Toast.makeText(this, R.string.sp_cant_process_request, Toast.LENGTH_SHORT).show();
+        }
+        executeJs(JS_METHOD_PURCHASE_FAIL);
+        Toast.makeText(this, "Purchase error!" + errorCode, Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -353,7 +352,7 @@ public class ShopWebViewActivity extends BaseActivity implements BillingProcesso
         super.onSaveInstanceState(outState);
     }
 
-    public static class AndroidJsInterface {
+    public class AndroidJsInterface {
 
         private final WeakReference<ShopWebViewActivity> mContextReference;
 
@@ -384,20 +383,17 @@ public class ShopWebViewActivity extends BaseActivity implements BillingProcesso
         }
 
         @JavascriptInterface
-        public void purchasePack(String productId) {
+        public void purchasePack(String productId, String packName) {
             if (mContextReference.get() != null) {
-                mContextReference.get().mHandler.post(() -> mContextReference.get().purchase(productId));
+                mContextReference.get().mHandler.post(() -> mContextReference.get().purchase(productId, packName));
             }
         }
 
         @JavascriptInterface
         @Nullable
-        public String getProductLabel(String productId) {
-            // TODO check this by threads corruption
+        public void getProductLabel(String productId) {
             if (mContextReference.get() != null) {
-                return mContextReference.get().getProductPrice(productId);
-            } else {
-                return null;
+                mContextReference.get().mHandler.post(() -> mContextReference.get().getProductLabel(productId));
             }
         }
 
@@ -424,8 +420,9 @@ public class ShopWebViewActivity extends BaseActivity implements BillingProcesso
         }
     }
 
-    private void purchase(String productId) {
+    private void purchase(String productId, String packName) {
         if (mBillingProcessor != null) {
+            packForPurchase = packName;
             mBillingProcessor.purchase(this, productId);
         } else {
             executeJs(JS_METHOD_PURCHASE_FAIL);
@@ -474,7 +471,7 @@ public class ShopWebViewActivity extends BaseActivity implements BillingProcesso
             case TasksManager.TASK_CATEGORY_PURCHASE_PACK:
                 if (event.getPendingTask().getAction().equals(packForPurchase)) {
                     if (event.isSuccess()) {
-                        executeJs(JS_METHOD_PURCHASE_SUCCESS_WITHOUT_CLOSE);
+                        executeJs(JS_METHOD_PURCHASE_SUCCESS);
                     } else {
                         executeJs(JS_METHOD_PURCHASE_FAIL);
                         showCantProcessToast();
@@ -490,7 +487,7 @@ public class ShopWebViewActivity extends BaseActivity implements BillingProcesso
         Toast.makeText(this, R.string.sp_cant_process_request, Toast.LENGTH_SHORT).show();
     }
 
-    private void executeJs(@JsMethod String method) {
+    private void executeJs(String method) {
         mWebView.loadUrl("javascript:window.JsInterface." + method);
     }
 
@@ -498,16 +495,11 @@ public class ShopWebViewActivity extends BaseActivity implements BillingProcesso
         mProgressView.setVisibility(inProgress ? View.VISIBLE : View.GONE);
     }
 
-    @Nullable
-    private String getProductPrice(String sku) {
-        if (TextUtils.isEmpty(sku) || mBillingProcessor == null) {
-            return null;
-        } else {
+    private void getProductLabel(String sku) {
+        if (!TextUtils.isEmpty(sku) && mBillingProcessor != null) {
             SkuDetails productInfo = mBillingProcessor.getPurchaseListingDetails(sku);
             if (productInfo != null) {
-                return productInfo.priceText;
-            } else {
-                return null;
+                executeJs(String.format(JS_METHOD_SET_PRODUCT_PRICE_LABEL, productInfo.priceText));
             }
         }
     }
