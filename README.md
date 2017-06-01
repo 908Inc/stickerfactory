@@ -13,16 +13,14 @@ git submodule add https://github.com/908Inc/stickerfactory.git
 ```
 include ':app', 'stickerfactory'
 ```
-* at root build.gradle add retrolambda and variables
+* at root build.gradle add variables
 ```
 buildscript {
     repositories {
         jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.2.2'
-        classpath 'me.tatarka:gradle-retrolambda:3.1.0'
-
+        classpath 'com.android.tools.build:gradle:3.0.0-alpha2'
     }
 }
 allprojects {
@@ -30,7 +28,7 @@ allprojects {
         jcenter()
     }
 }
-ext.sdkVersionName = "0.14.4"
+ext.sdkVersionName = "0.15.0"
 ext.minifyEnableMode = true
 ext.groupName = "vc908.stickers"
 ext.artifactoryUrl = ""
