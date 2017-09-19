@@ -34,13 +34,11 @@ import com.bumptech.glide.request.target.ImageViewTarget;
 import com.bumptech.glide.request.transition.Transition;
 
 import java.io.File;
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
 import de.greenrobot.event.EventBus;
 import vc908.stickerfactory.events.KeyboardVisibilityChangedEvent;
-import vc908.stickerfactory.events.ShopHasNewContentFlagChangedEvent;
 import vc908.stickerfactory.model.SearchResultItem;
 import vc908.stickerfactory.ui.OnShopButtonClickedListener;
 import vc908.stickerfactory.ui.fragment.StickersFragment;
@@ -57,14 +55,14 @@ import vc908.stickerfactory.utils.Utils;
 public class StickersKeyboardController {
     private String TAG = StickersKeyboardController.class.getSimpleName();
     private Handler mHandler = new Handler();
-    private WeakReference<Context> contextReference;
-    private WeakReference<View> contentContainer;
-    private WeakReference<View> stickersFrame;
-    private WeakReference<StickersKeyboardLayout> stickersKeyboardLayout;
-    private WeakReference<BadgedButton> stickersButton;
-    private WeakReference<EditText> chatEdit;
-    private WeakReference<StickersFragment> stickersFragment;
-    private WeakReference<RecyclerView> suggestContainer;
+    private Context context;
+    private View contentContainer;
+    private View stickersFrame;
+    private StickersKeyboardLayout stickersKeyboardLayout;
+    private BadgedButton stickersButton;
+    private EditText chatEdit;
+    private StickersFragment stickersFragment;
+    private RecyclerView suggestContainer;
     private StickersKeyboardLayout.KeyboardHideCallback keyboardHideCallback;
     private KeyboardVisibilityChangeListener externalKeyboardVisibilityChangeListener;
     private KeyboardVisibilityChangeIntentListener keyboardVisibilityChangeIntentListener;
@@ -88,41 +86,31 @@ public class StickersKeyboardController {
         void onKeyboardVisibilityChangeIntent();
     }
 
-    private StickersKeyboardController(Context contextReference) {
-        this.contextReference = new WeakReference<>(contextReference);
+    private StickersKeyboardController(Context context) {
+        this.context = context;
         TypedValue tv = new TypedValue();
-        if (contextReference.getTheme().resolveAttribute(android.R.attr.actionBarSize, tv, true)) {
-            actionBarHeight = TypedValue.complexToDimensionPixelSize(tv.data, contextReference.getResources().getDisplayMetrics());
+        if (context.getTheme().resolveAttribute(android.R.attr.actionBarSize, tv, true)) {
+            actionBarHeight = TypedValue.complexToDimensionPixelSize(tv.data, context.getResources().getDisplayMetrics());
         } else {
-            actionBarHeight = Utils.dp(48, contextReference);
-        }
-        EventBus.getDefault().register(this);
-    }
-
-    public void onEvent(ShopHasNewContentFlagChangedEvent event) {
-        if (stickersButton != null && stickersButton.get() != null) {
-            stickersButton.get().setIsMarked(event.isHasNewContent());
-        }
-        if (stickersFragment != null && stickersFragment.get() != null) {
-            stickersFragment.get().setShopButtonMarked(event.isHasNewContent());
+            actionBarHeight = Utils.dp(48, context);
         }
     }
 
     private void setContentContainer(View contentContainer) {
-        this.contentContainer = new WeakReference<>(contentContainer);
+        this.contentContainer = contentContainer;
     }
 
     private void setStickersFrame(View stickersFrame) {
-        this.stickersFrame = new WeakReference<>(stickersFrame);
+        this.stickersFrame = stickersFrame;
     }
 
     private void setStickersKeyboardLayout(StickersKeyboardLayout stickersKeyboardLayout) {
-        this.stickersKeyboardLayout = new WeakReference<>(stickersKeyboardLayout);
+        this.stickersKeyboardLayout = stickersKeyboardLayout;
         stickersKeyboardLayout.setKeyboardVisibilityChangeListener(keyboardVisibilityChangeListener);
     }
 
     private void setChatEdit(EditText chatEdit) {
-        this.chatEdit = new WeakReference<>(chatEdit);
+        this.chatEdit = chatEdit;
         chatEdit.setImeOptions(EditorInfo.IME_FLAG_NO_EXTRACT_UI);
         chatEdit.addTextChangedListener(textWatcher);
     }
@@ -146,37 +134,30 @@ public class StickersKeyboardController {
 
 
     private void setStickersButton(BadgedButton stickersButton) {
-        this.stickersButton = new WeakReference<>(stickersButton);
-        if (contextReference != null && contextReference.get() != null) {
-            stickersButton.setOnClickListener(v -> {
-                        if (keyboardVisibilityChangeIntentListener != null) {
-                            keyboardVisibilityChangeIntentListener.onKeyboardVisibilityChangeIntent();
-                        }
-                        if (isStickersFrameVisible) {
-                            showKeyboard();
+        this.stickersButton = stickersButton;
+        stickersButton.setOnClickListener(v -> {
+                    if (keyboardVisibilityChangeIntentListener != null) {
+                        keyboardVisibilityChangeIntentListener.onKeyboardVisibilityChangeIntent();
+                    }
+                    if (isStickersFrameVisible) {
+                        showKeyboard();
+                    } else {
+                        if (stickersKeyboardLayout.isKeyboardVisible()) {
+                            hideKeyboard(context, () -> setStickersFrameVisible(true));
                         } else {
-                            if (stickersKeyboardLayout != null && stickersKeyboardLayout.get() != null)
-                                if (stickersKeyboardLayout.get().isKeyboardVisible()) {
-                                    if (contextReference != null && contextReference.get() != null) {
-                                        hideKeyboard(contextReference.get(), () -> setStickersFrameVisible(true));
-                                    }
-                                } else {
-                                    setStickersFrameVisible(true);
-                                }
+                            setStickersFrameVisible(true);
                         }
                     }
-            );
-        }
+                }
+        );
     }
 
     private void setStickersFragment(StickersFragment stickersFragment) {
-        this.stickersFragment = new WeakReference<>(stickersFragment);
+        this.stickersFragment = stickersFragment;
         stickersFragment.setOnEmojiBackspaceClickListener(() -> {
                     KeyEvent event = new KeyEvent(
                             0, 0, 0, KeyEvent.KEYCODE_DEL, 0, 0, 0, 0, KeyEvent.KEYCODE_ENDCALL);
-                    if (chatEdit != null && chatEdit.get() != null) {
-                        chatEdit.get().dispatchKeyEvent(event);
-                    }
+                    chatEdit.dispatchKeyEvent(event);
                 }
         );
         stickersFragment.addOnShopButtonCickedListener(shopButtonClickListener);
@@ -186,9 +167,7 @@ public class StickersKeyboardController {
     private OnShopButtonClickedListener shopButtonClickListener = new OnShopButtonClickedListener() {
         @Override
         public void onShopButtonClicked() {
-            if (stickersButton != null && stickersButton.get() != null) {
-                stickersButton.get().setIsMarked(false);
-            }
+            stickersButton.setIsMarked(false);
         }
     };
 
@@ -199,19 +178,15 @@ public class StickersKeyboardController {
     };
 
     private void hideKeyboard(@NonNull Context context, @NonNull StickersKeyboardLayout.KeyboardHideCallback callback) {
-        if (stickersKeyboardLayout != null && stickersKeyboardLayout.get() != null) {
-            if (stickersKeyboardLayout.get().isKeyboardVisible()) {
-                keyboardHideCallback = callback;
-                InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
-                if (!imm.isActive()) {
-                    return;
-                }
-                if (stickersFrame != null && stickersFrame.get() != null) {
-                    imm.hideSoftInputFromWindow(stickersFrame.get().getWindowToken(), 0);
-                }
-            } else {
-                callback.onKeyboardHide();
+        if (stickersKeyboardLayout.isKeyboardVisible()) {
+            keyboardHideCallback = callback;
+            InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
+            if (!imm.isActive()) {
+                return;
             }
+            imm.hideSoftInputFromWindow(stickersFrame.getWindowToken(), 0);
+        } else {
+            callback.onKeyboardHide();
         }
     }
 
@@ -234,32 +209,27 @@ public class StickersKeyboardController {
             externalKeyboardVisibilityChangeListener.onTextKeyboardVisibilityChanged(isVisible);
         }
         EventBus.getDefault().post(new KeyboardVisibilityChangedEvent(isVisible));
-        if (contextReference != null && contextReference.get() != null
-                && isFragmentViewCreated()) {
-            if (stickersFragment.get().isSearchActive() && isVisible) {
-                if (contentContainer != null && contentContainer.get() != null) {
-                    updateStickersFrameParams(contentContainer.get().getHeight());
-                }
-                stickersFragment.get().setTabsVisible(false);
-                stickersFragment.get().setSwipeEnabled(false);
-                stickersFragment.get().setSearchHeight(actionBarHeight);
+        if (isFragmentViewCreated()) {
+            if (stickersFragment.isSearchActive() && isVisible) {
+                updateStickersFrameParams(contentContainer.getHeight());
+                stickersFragment.setTabsVisible(false);
+                stickersFragment.setSwipeEnabled(false);
+                stickersFragment.setSearchHeight(actionBarHeight);
                 return;
 
             } else {
-                stickersFragment.get().setTabsVisible(true);
-                stickersFragment.get().setSwipeEnabled(true);
-                stickersFragment.get().setSearchHeight((int) contextReference.get().getResources().getDimension(R.dimen.material_48));
+                stickersFragment.setTabsVisible(true);
+                stickersFragment.setSwipeEnabled(true);
+                stickersFragment.setSearchHeight((int) context.getResources().getDimension(R.dimen.material_48));
                 updateStickersFrameParams();
             }
             if (isVisible) {
                 setStickersFrameVisible(false);
             } else {
-                if (stickersButton != null && stickersButton.get() != null) {
-                    if (isStickersFrameVisible) {
-                        stickersButton.get().setImageResource(keyboardIcon);
-                    } else {
-                        stickersButton.get().setImageResource(stickersIcon);
-                    }
+                if (isStickersFrameVisible) {
+                    stickersButton.setImageResource(keyboardIcon);
+                } else {
+                    stickersButton.setImageResource(stickersIcon);
                 }
             }
         }
@@ -270,71 +240,58 @@ public class StickersKeyboardController {
     }
 
     private void setStickersFrameVisible(boolean isVisible) {
-        if (stickersButton != null && stickersButton.get() != null
-                && stickersFrame != null && stickersFrame.get() != null) {
-            if (isVisible) {
-                stickersButton.get().setImageResource(keyboardIcon);
-            } else {
-                stickersButton.get().setImageResource(stickersIcon);
-            }
-            stickersFrame.get().setVisibility(isVisible ? View.VISIBLE : View.GONE);
-            isStickersFrameVisible = isVisible;
-            updateStickersFrameParams();
-            final int padding = isVisible ? KeyboardUtils.getKeyboardHeight(contextReference.get()) : 0;
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
-                stickersFrame.get().post(() -> setContentBottomPadding(padding));
-            } else {
-                setContentBottomPadding(padding);
-            }
-            if (externalKeyboardVisibilityChangeListener != null) {
-                externalKeyboardVisibilityChangeListener.onStickersKeyboardVisibilityChanged(isVisible);
-            }
+        if (isVisible) {
+            stickersButton.setImageResource(keyboardIcon);
+        } else {
+            stickersButton.setImageResource(stickersIcon);
+        }
+        stickersFrame.setVisibility(isVisible ? View.VISIBLE : View.GONE);
+        isStickersFrameVisible = isVisible;
+        updateStickersFrameParams();
+        final int padding = isVisible ? KeyboardUtils.getKeyboardHeight(context) : 0;
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
+            stickersFrame.post(() -> setContentBottomPadding(padding));
+        } else {
+            setContentBottomPadding(padding);
+        }
+        if (externalKeyboardVisibilityChangeListener != null) {
+            externalKeyboardVisibilityChangeListener.onStickersKeyboardVisibilityChanged(isVisible);
         }
     }
 
     private void setSuggestContainer(RecyclerView suggestContainer) {
-        this.suggestContainer = new WeakReference<>(suggestContainer);
-        if (contextReference != null && contextReference.get() != null) {
-            suggestContainer.setBackgroundColor(ContextCompat.getColor(contextReference.get(), R.color.sp_suggest_container_bg));
-            suggestContainer.setVisibility(View.GONE);
-            if (adapter == null) {
-                adapter = new SuggestedStickersAdapter(contextReference.get(), suggestClickListener);
-                suggestContainer.setLayoutManager(new LinearLayoutManager(contextReference.get(), LinearLayoutManager.HORIZONTAL, false));
-                suggestContainer.setAdapter(adapter);
-            }
+        this.suggestContainer = suggestContainer;
+        suggestContainer.setBackgroundColor(ContextCompat.getColor(context, R.color.sp_suggest_container_bg));
+        suggestContainer.setVisibility(View.GONE);
+        if (adapter == null) {
+            adapter = new SuggestedStickersAdapter(context, suggestClickListener);
+            suggestContainer.setLayoutManager(new LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false));
+            suggestContainer.setAdapter(adapter);
         }
     }
 
     private void updateStickersFrameParams() {
-        if (stickersFrame != null && stickersFrame.get() != null
-                && contextReference != null && contextReference.get() != null
-                && stickersFrame.get().getHeight() != KeyboardUtils.getKeyboardHeight(contextReference.get())) {
-            updateStickersFrameParams(KeyboardUtils.getKeyboardHeight(contextReference.get()));
+        if (stickersFrame != null && context != null && stickersFrame.getHeight() != KeyboardUtils.getKeyboardHeight(context)) {
+            updateStickersFrameParams(KeyboardUtils.getKeyboardHeight(context));
         }
     }
 
     private void updateStickersFrameParams(int height) {
         if (stickersFrame != null
-                && stickersFrame.get() != null
-                && stickersFrame.get().getLayoutParams().height != height) {
-            stickersFrame.get().getLayoutParams().height = height;
-            stickersFrame.get().requestLayout();
+                && stickersFrame.getLayoutParams().height != height) {
+            stickersFrame.getLayoutParams().height = height;
+            stickersFrame.requestLayout();
         }
     }
 
     private void setContentBottomPadding(int padding) {
-        if (contentContainer != null && contentContainer.get() != null) {
-            contentContainer.get().setPadding(0, 0, 0, padding);
-        }
+        contentContainer.setPadding(0, 0, 0, padding);
     }
 
     private void showKeyboard() {
-        if (contextReference != null && contextReference.get() != null
-                && chatEdit != null && chatEdit.get() != null) {
-            chatEdit.get().requestFocus();
-            ((InputMethodManager) contextReference.get().getSystemService(Context.INPUT_METHOD_SERVICE))
-                    .showSoftInput(chatEdit.get(), InputMethodManager.SHOW_IMPLICIT);
-        }
+        chatEdit.requestFocus();
+        ((InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE))
+                .showSoftInput(chatEdit, InputMethodManager.SHOW_IMPLICIT);
     }
 
     public boolean hideStickersKeyboard() {
@@ -347,7 +304,7 @@ public class StickersKeyboardController {
     }
 
     private boolean isFragmentViewCreated() {
-        return stickersFragment != null && stickersFragment.get() != null && stickersFragment.get().getView() != null;
+        return stickersFragment.getView() != null;
     }
 
     public void processTabShowIntent() {
@@ -355,8 +312,8 @@ public class StickersKeyboardController {
             if (!isStickersFrameVisible) {
                 setStickersFrameVisible(true);
             }
-            if (stickersFragment.get().isAdded()) {
-                stickersFragment.get().selectTabIfNeed();
+            if (stickersFragment.isAdded()) {
+                stickersFragment.selectTabIfNeed();
             }
         }
     }
@@ -395,25 +352,23 @@ public class StickersKeyboardController {
 
     private SuggestedStickersAdapter adapter;
     private Runnable searchRunnable = () -> {
-        if (suggestContainer != null && suggestContainer.get() != null) {
-            NetworkManager.getInstance().requestSearch(currentSuggestSegment, false, true).subscribe(
-                    result -> {
-                        if (result.getData() != null && result.getData().size() > 0) {
-                            adapter.setData(result.getData());
-                            setSuggestsVisible(true);
-                            // store pack names
-                            for (SearchResultItem item : result.getData()) {
-                                StorageManager.getInstance().storeContentPackName(item.getContentId(), item.getPack());
-                            }
-                        } else {
-                            setSuggestsVisible(false);
+        NetworkManager.getInstance().requestSearch(currentSuggestSegment, false, true).subscribe(
+                result -> {
+                    if (result.getData() != null && result.getData().size() > 0) {
+                        adapter.setData(result.getData());
+                        setSuggestsVisible(true);
+                        // store pack names
+                        for (SearchResultItem item : result.getData()) {
+                            StorageManager.getInstance().storeContentPackName(item.getContentId(), item.getPack());
                         }
-                    },
-                    th -> {
-                        Logger.e(TAG, "Can't complete suggest search request", th);
+                    } else {
                         setSuggestsVisible(false);
-                    });
-        }
+                    }
+                },
+                th -> {
+                    Logger.e(TAG, "Can't complete suggest search request", th);
+                    setSuggestsVisible(false);
+                });
     };
 
     private interface SuggestStickerClickListener {
@@ -424,7 +379,7 @@ public class StickersKeyboardController {
         if (isFragmentViewCreated()) {
             currentSuggestSegment = "";
             setSuggestsVisible(false);
-            stickersFragment.get().processSuggestStickerClick(contentId);
+            stickersFragment.processSuggestStickerClick(contentId);
         }
     };
 
@@ -445,53 +400,45 @@ public class StickersKeyboardController {
             if (data != null && !data.equals(this.data)) {
                 this.data = data;
                 notifyDataSetChanged();
-                if (suggestContainer != null && suggestContainer.get() != null) {
-                    suggestContainer.get().scrollToPosition(0);
-                }
+                suggestContainer.scrollToPosition(0);
             }
         }
 
         @Override
         public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            if (contextReference != null && contextReference.get() != null) {
-                ImageView iv = new SquareHeightImageView(contextReference.get());
-                RecyclerView.LayoutParams lp = new RecyclerView.LayoutParams(RecyclerView.LayoutParams.MATCH_PARENT, RecyclerView.LayoutParams.MATCH_PARENT);
-                iv.setLayoutParams(lp);
-                iv.setScaleType(ImageView.ScaleType.FIT_XY);
-                iv.setPadding(padding, padding, padding, padding);
-                return new ViewHolder(iv);
-            } else {
-                return null;
-            }
+            ImageView iv = new SquareHeightImageView(context);
+            RecyclerView.LayoutParams lp = new RecyclerView.LayoutParams(RecyclerView.LayoutParams.MATCH_PARENT, RecyclerView.LayoutParams.MATCH_PARENT);
+            iv.setLayoutParams(lp);
+            iv.setScaleType(ImageView.ScaleType.FIT_XY);
+            iv.setPadding(padding, padding, padding, padding);
+            return new ViewHolder(iv);
         }
 
         @Override
         public void onBindViewHolder(ViewHolder viewHolder, int position) {
-            if (viewHolder != null && contextReference != null && contextReference.get() != null) {
-                viewHolder.contentId = data.get(position).getContentId();
-                Uri uri = getFileUri(viewHolder.contentId, position);
-                if (uri != null) {
-                    Glide.with(contextReference.get())
-                            .load(uri)
-                            .apply(new RequestOptions()
-                                    .placeholder(android.R.color.transparent)
-                                    .diskCacheStrategy(DiskCacheStrategy.RESOURCE))
-                            .into(new ImageViewTarget<Drawable>(viewHolder.iv) {
-                                @Override
-                                protected void setResource(@Nullable Drawable resource) {
-                                    getView().setImageDrawable(resource);
-                                }
+            viewHolder.contentId = data.get(position).getContentId();
+            Uri uri = getFileUri(viewHolder.contentId, position);
+            if (uri != null) {
+                Glide.with(context)
+                        .load(uri)
+                        .apply(new RequestOptions()
+                                .placeholder(android.R.color.transparent)
+                                .diskCacheStrategy(DiskCacheStrategy.RESOURCE))
+                        .into(new ImageViewTarget<Drawable>(viewHolder.iv) {
+                            @Override
+                            protected void setResource(@Nullable Drawable resource) {
+                                getView().setImageDrawable(resource);
+                            }
 
-                                @Override
-                                public void onResourceReady(Drawable resource,
-                                                            @Nullable Transition<? super Drawable> transition) {
-                                    super.onResourceReady(resource, transition);
-                                    getView().setOnTouchListener(imageTouchListener);
-                                }
-                            });
-                } else {
-                    viewHolder.iv.setImageResource(android.R.color.transparent);
-                }
+                            @Override
+                            public void onResourceReady(Drawable resource,
+                                                        @Nullable Transition<? super Drawable> transition) {
+                                super.onResourceReady(resource, transition);
+                                getView().setOnTouchListener(imageTouchListener);
+                            }
+                        });
+            } else {
+                viewHolder.iv.setImageResource(android.R.color.transparent);
             }
         }
 
@@ -532,9 +479,9 @@ public class StickersKeyboardController {
             if (file.exists()) {
                 return Uri.fromFile(file);
             } else {
-                if (contextReference != null && contextReference.get() != null) {
+                if (context != null && context != null) {
                     NetworkManager.getInstance().downloadImage(
-                            data.get(position).getImage().get(Utils.getDensityName(contextReference.get())), contentId)
+                            data.get(position).getImage().get(Utils.getDensityName(context)), contentId)
                             .subscribe(
                                     result -> {
                                         if (result) {
@@ -571,40 +518,37 @@ public class StickersKeyboardController {
     }
 
     private void setSuggestsVisible(boolean isVisible) {
-        if (suggestContainer != null && suggestContainer.get() != null) {
-            if (suggestContainer.get().getVisibility() == View.GONE && !isVisible
-                    || suggestContainer.get().getVisibility() == View.VISIBLE && isVisible) {
-                return;
-            }
-            suggestContainer.get()
-                    .animate()
-                    .alpha(isVisible ? 1 : 0)
-                    .setDuration(200)
-                    .setListener(new Animator.AnimatorListener() {
-                        @Override
-                        public void onAnimationStart(Animator animation) {
-                            suggestContainer.get().setVisibility(View.VISIBLE);
-                        }
-
-                        @Override
-                        public void onAnimationEnd(Animator animation) {
-                            if (!isVisible && suggestContainer != null && suggestContainer.get() != null) {
-                                suggestContainer.get().setVisibility(View.GONE);
-                            }
-                        }
-
-                        @Override
-                        public void onAnimationCancel(Animator animation) {
-
-                        }
-
-                        @Override
-                        public void onAnimationRepeat(Animator animation) {
-
-                        }
-                    })
-                    .start();
+        if (suggestContainer.getVisibility() == View.GONE && !isVisible
+                || suggestContainer.getVisibility() == View.VISIBLE && isVisible) {
+            return;
         }
+        suggestContainer.animate()
+                .alpha(isVisible ? 1 : 0)
+                .setDuration(200)
+                .setListener(new Animator.AnimatorListener() {
+                    @Override
+                    public void onAnimationStart(Animator animation) {
+                        suggestContainer.setVisibility(View.VISIBLE);
+                    }
+
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        if (!isVisible) {
+                            suggestContainer.setVisibility(View.GONE);
+                        }
+                    }
+
+                    @Override
+                    public void onAnimationCancel(Animator animation) {
+
+                    }
+
+                    @Override
+                    public void onAnimationRepeat(Animator animation) {
+
+                    }
+                })
+                .start();
     }
 
 

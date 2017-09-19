@@ -12,8 +12,10 @@ import android.support.v4.content.ContextCompat;
 import android.util.AttributeSet;
 import android.widget.ImageButton;
 
+import de.greenrobot.event.EventBus;
 import vc908.stickerfactory.R;
 import vc908.stickerfactory.StorageManager;
+import vc908.stickerfactory.events.ShopHasNewContentFlagChangedEvent;
 import vc908.stickerfactory.utils.Utils;
 
 /**
@@ -93,5 +95,21 @@ public class BadgedButton extends ImageButton {
             this.isMarked = isMarked;
             invalidate();
         }
+    }
+
+    @Override
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        EventBus.getDefault().register(this);
+    }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        EventBus.getDefault().unregister(this);
+    }
+
+    public void onEvent(ShopHasNewContentFlagChangedEvent event) {
+        setIsMarked(event.isHasNewContent());
     }
 }

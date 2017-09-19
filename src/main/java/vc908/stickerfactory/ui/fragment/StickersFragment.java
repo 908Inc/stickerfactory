@@ -43,6 +43,7 @@ import vc908.stickerfactory.StorageManager;
 import vc908.stickerfactory.analytics.AnalyticsManager;
 import vc908.stickerfactory.analytics.IAnalytics;
 import vc908.stickerfactory.events.PackTabImageDownloadedEvent;
+import vc908.stickerfactory.events.ShopHasNewContentFlagChangedEvent;
 import vc908.stickerfactory.provider.packs.PacksColumns;
 import vc908.stickerfactory.provider.packs.PacksCursor;
 import vc908.stickerfactory.provider.packs.Status;
@@ -137,6 +138,10 @@ public class StickersFragment extends Fragment implements LoaderManager.LoaderCa
     public void onStop() {
         super.onStop();
         EventBus.getDefault().unregister(this);
+    }
+
+    public void onEventMainThread(ShopHasNewContentFlagChangedEvent event) {
+        setShopButtonMarked(event.isHasNewContent());
     }
 
     public void onEventMainThread(PackTabImageDownloadedEvent event) {
