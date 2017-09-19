@@ -18,6 +18,7 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.request.RequestOptions;
 import com.h6ah4i.android.widget.advrecyclerview.animator.GeneralItemAnimator;
 import com.h6ah4i.android.widget.advrecyclerview.animator.SwipeDismissItemAnimator;
 import com.h6ah4i.android.widget.advrecyclerview.decoration.SimpleListDividerDecorator;
@@ -78,11 +79,13 @@ public class CollectionsActivity extends BaseActivity {
 
         // touch guard manager  (this class is required to suppress scrolling while swipe-dismiss animation is running)
         mRecyclerViewTouchActionGuardManager = new RecyclerViewTouchActionGuardManager();
-        mRecyclerViewTouchActionGuardManager.setInterceptVerticalScrollingWhileAnimationRunning(true);
+        mRecyclerViewTouchActionGuardManager.setInterceptVerticalScrollingWhileAnimationRunning(
+                true);
         mRecyclerViewTouchActionGuardManager.setEnabled(true);
 
         mRecyclerViewDragDropManager = new RecyclerViewDragDropManager();
-        mRecyclerViewDragDropManager.setDraggingItemShadowDrawable((NinePatchDrawable) ContextCompat.getDrawable(this, R.drawable.sp_material_shadow));
+        mRecyclerViewDragDropManager.setDraggingItemShadowDrawable(
+                (NinePatchDrawable) ContextCompat.getDrawable(this, R.drawable.sp_material_shadow));
 
         mRecyclerViewSwipeManager = new RecyclerViewSwipeManager();
 
@@ -99,12 +102,12 @@ public class CollectionsActivity extends BaseActivity {
         mRecyclerView.setAdapter(mWrappedAdapter);
         mRecyclerView.setItemAnimator(animator);
 
-        mRecyclerView.addItemDecoration(new SimpleListDividerDecorator(ContextCompat.getDrawable(this, R.drawable.sp_list_divider), true));
+        mRecyclerView.addItemDecoration(new SimpleListDividerDecorator(
+                ContextCompat.getDrawable(this, R.drawable.sp_list_divider), true));
 
         mRecyclerViewTouchActionGuardManager.attachRecyclerView(mRecyclerView);
         mRecyclerViewSwipeManager.attachRecyclerView(mRecyclerView);
         mRecyclerViewDragDropManager.attachRecyclerView(mRecyclerView);
-
     }
 
     @Override
@@ -114,20 +117,15 @@ public class CollectionsActivity extends BaseActivity {
 
     private void getPacksData() {
         data.clear();
-        Cursor cursor = getContentResolver().query(
-                PacksColumns.CONTENT_URI,
-                new String[]{PacksColumns._ID, PacksColumns.NAME, PacksColumns.TITLE, PacksColumns.ARTIST, PacksColumns.LAST_MODIFY_DATE},
-                PacksColumns.STATUS + "=?",
-                new String[]{String.valueOf(Status.ACTIVE.ordinal())},
+        Cursor cursor = getContentResolver().query(PacksColumns.CONTENT_URI, new String[]{
+                        PacksColumns._ID, PacksColumns.NAME, PacksColumns.TITLE, PacksColumns.ARTIST,
+                        PacksColumns.LAST_MODIFY_DATE
+                }, PacksColumns.STATUS + "=?", new String[]{String.valueOf(Status.ACTIVE.ordinal())},
                 PacksColumns.PACK_ORDER);
         PacksCursor packsCursor = new PacksCursor(cursor);
         while (packsCursor.moveToNext()) {
-            data.add(new PackInfoHolder(
-                    false,
-                    packsCursor.getId(),
-                    packsCursor.getName(),
-                    packsCursor.getTitle(),
-                    packsCursor.getArtist(),
+            data.add(new PackInfoHolder(false, packsCursor.getId(), packsCursor.getName(),
+                    packsCursor.getTitle(), packsCursor.getArtist(),
                     packsCursor.getLastModifyDate() != null ? packsCursor.getLastModifyDate() : 0));
         }
         if (cursor != null) {
@@ -172,7 +170,10 @@ public class CollectionsActivity extends BaseActivity {
         super.onDestroy();
     }
 
-    public class MyDraggableSwipeableItemAdapter extends RecyclerView.Adapter<MyDraggableSwipeableItemAdapter.MyViewHolder> implements DraggableItemAdapter<MyDraggableSwipeableItemAdapter.MyViewHolder>, LegacySwipeableItemAdapter<MyDraggableSwipeableItemAdapter.MyViewHolder> {
+    public class MyDraggableSwipeableItemAdapter
+            extends RecyclerView.Adapter<MyDraggableSwipeableItemAdapter.MyViewHolder>
+            implements DraggableItemAdapter<MyDraggableSwipeableItemAdapter.MyViewHolder>,
+            LegacySwipeableItemAdapter<MyDraggableSwipeableItemAdapter.MyViewHolder> {
         private static final String TAG = "MyDraggableItemAdapter";
 
         @Override
@@ -208,11 +209,12 @@ public class CollectionsActivity extends BaseActivity {
         }
 
         @Override
-        public void onPerformAfterSwipeReaction(MyViewHolder holder, int position, int result, int reaction) {
+        public void onPerformAfterSwipeReaction(MyViewHolder holder, int position, int result,
+                                                int reaction) {
             switch (reaction) {
                 case RecyclerViewSwipeManager.AFTER_SWIPE_REACTION_MOVE_TO_SWIPED_DIRECTION:
                     data.get(position).isSwiped = true;
-//                    notifyItemChanged(position);
+                    //                    notifyItemChanged(position);
                     break;
                 default:
                     data.get(position).isSwiped = false;
@@ -236,10 +238,12 @@ public class CollectionsActivity extends BaseActivity {
                 // prevent touch event at underlying view
                 frontViewContainer.setOnTouchListener((v1, event) -> false);
                 mDragHandle = (ImageView) v.findViewById(R.id.drag_handle);
-                mDragHandle.setColorFilter(ContextCompat.getColor(CollectionsActivity.this, R.color.sp_reorder_icon));
+                mDragHandle.setColorFilter(
+                        ContextCompat.getColor(CollectionsActivity.this, R.color.sp_reorder_icon));
                 packImageView = (ImageView) v.findViewById(R.id.pack_image);
                 mRemoveView = (ImageView) v.findViewById(R.id.delete);
-                mRemoveView.setColorFilter(ContextCompat.getColor(CollectionsActivity.this, R.color.sp_remove_icon));
+                mRemoveView.setColorFilter(
+                        ContextCompat.getColor(CollectionsActivity.this, R.color.sp_remove_icon));
                 titleView = (TextView) v.findViewById(R.id.pack_title);
                 artistView = (TextView) v.findViewById(R.id.pack_artist);
             }
@@ -264,8 +268,9 @@ public class CollectionsActivity extends BaseActivity {
             holder.packName = data.get(position).name;
 
             Glide.with(CollectionsActivity.this)
-                    .load(StorageManager.getInstance().getImageFile(NamesHelper.getMainIconName(holder.packName)))
-                    .diskCacheStrategy(DiskCacheStrategy.RESULT)
+                    .load(StorageManager.getInstance()
+                            .getImageFile(NamesHelper.getMainIconName(holder.packName)))
+                    .apply(new RequestOptions().diskCacheStrategy(DiskCacheStrategy.RESOURCE))
                     .into(holder.packImageView);
 
             holder.mRemoveView.setOnClickListener(v -> performDelete(holder, position));
@@ -289,7 +294,6 @@ public class CollectionsActivity extends BaseActivity {
             holder.frontViewContainer.setOnClickListener(v -> {
                 closeSwipedItems();
                 showStickerPackInfo(holder.packName);
-
             });
         }
 
@@ -310,16 +314,18 @@ public class CollectionsActivity extends BaseActivity {
                         mHandler.removeCallbacks(deletingRunnable);
                         data.add(position, tempItem);
                         notifyItemInserted(position);
-                    }).show();
+                    })
+                    .show();
 
             notifyItemRemoved(position);
-//              SnackbarManager.SHORT_DURATION_MS(1500) + animation duration + swipe animation duration
+            //              SnackbarManager.SHORT_DURATION_MS(1500) + animation duration + swipe animation duration
             mHandler.postDelayed(deletingRunnable, 2000);
         }
 
         @Override
         public MyViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            return new MyViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.sp_list_item_dragable_pack, parent, false));
+            return new MyViewHolder(LayoutInflater.from(parent.getContext())
+                    .inflate(R.layout.sp_list_item_dragable_pack, parent, false));
         }
 
         @Override
@@ -338,12 +344,12 @@ public class CollectionsActivity extends BaseActivity {
             StorageManager.getInstance().updatePacksOrder(toList(data));
         }
 
-
         @Override
         public boolean onCheckCanStartDrag(MyViewHolder holder, int position, int x, int y) {
             float deltaX = ViewCompat.getTranslationX(holder.frontViewContainer);
             return (x >= holder.mDragHandle.getLeft() + deltaX)
-                    && (x <= holder.mDragHandle.getRight() + deltaX)
+                    && (x
+                    <= holder.mDragHandle.getRight() + deltaX)
                     && (y >= holder.mDragHandle.getTop())
                     && (y <= holder.mDragHandle.getBottom());
         }
@@ -380,7 +386,8 @@ public class CollectionsActivity extends BaseActivity {
         String artist;
         long lastModifyDate;
 
-        public PackInfoHolder(boolean isSwiped, long id, String name, String title, String artist, long lastModifyDate) {
+        public PackInfoHolder(boolean isSwiped, long id, String name, String title, String artist,
+                              long lastModifyDate) {
             this.isSwiped = isSwiped;
             this.id = id;
             this.name = name;

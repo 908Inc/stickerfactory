@@ -27,6 +27,7 @@ import android.widget.RelativeLayout;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.request.RequestOptions;
 
 import java.io.File;
 import java.lang.ref.WeakReference;
@@ -573,8 +574,9 @@ public class StickersFragment extends Fragment implements LoaderManager.LoaderCa
             if (tabFile != null && tabFile.exists()) {
                 Glide.with(StickersFragment.this)
                         .load(tabFile)
-                        .placeholder(tabPlaceholderDrawable)
-                        .diskCacheStrategy(DiskCacheStrategy.NONE)
+                        .apply(new RequestOptions()
+                                .placeholder(tabPlaceholderDrawable)
+                                .diskCacheStrategy(DiskCacheStrategy.NONE))
                         .into(tabView);
             } else {
                 tabView.setImageDrawable(tabPlaceholderDrawable);

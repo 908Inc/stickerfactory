@@ -11,6 +11,7 @@ import android.widget.ImageView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.RequestManager;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.request.RequestOptions;
 import com.bumptech.glide.request.target.Target;
 
 import java.io.File;
@@ -49,23 +50,23 @@ public class StickerLoader {
 
     public void into(@NonNull ImageView iv) {
         mImageViewWeakReference = new WeakReference<>(iv);
-        placeholderDrawable = ContextCompat.getDrawable(iv.getContext(), R.drawable.sp_sticker_placeholder);
-        placeholderDrawable.setColorFilter(ContextCompat.getColor(iv.getContext(), R.color.sp_placeholder_color_filer), PorterDuff.Mode.SRC_IN);
+        placeholderDrawable =
+                ContextCompat.getDrawable(iv.getContext(), R.drawable.sp_sticker_placeholder);
+        placeholderDrawable.setColorFilter(
+                ContextCompat.getColor(iv.getContext(), R.color.sp_placeholder_color_filer),
+                PorterDuff.Mode.SRC_IN);
         File file = StorageManager.getInstance().getImageFile(contentId);
         iv.setTag(R.id.sp_loader_key, this);
         if (file == null || !file.exists()) {
             iv.setImageDrawable(placeholderDrawable);
-            NetworkManager.getInstance().downloadSticker(contentId)
-                    .subscribe(
-                            resultFile -> {
-                                ImageView imageView = mImageViewWeakReference.get();
-                                if (imageView != null) {
-                                    load(imageView, resultFile);
-                                }
-                            },
-                            th -> Logger.e(TAG, "Can't display sticker", th)
+            NetworkManager.getInstance().downloadSticker(contentId).subscribe(resultFile -> {
+                        ImageView imageView = mImageViewWeakReference.get();
+                        if (imageView != null) {
+                            load(imageView, resultFile);
+                        }
+                    }, th -> Logger.e(TAG, "Can't display sticker", th)
 
-                    );
+            );
         } else {
             load(iv, file);
         }
@@ -73,19 +74,20 @@ public class StickerLoader {
 
     private void load(@NonNull ImageView iv, @NonNull File file) {
         if (iv.getTag(R.id.sp_loader_key) == StickerLoader.this) {
-            if (requestManager != null)
+            if (requestManager != null) {
                 requestManager.load(file)
-                        .placeholder(placeholderDrawable)
-                        .diskCacheStrategy(DiskCacheStrategy.NONE)
-                        .override(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL)
+                        .apply(new RequestOptions().placeholder(placeholderDrawable)
+                                .diskCacheStrategy(DiskCacheStrategy.NONE)
+                                .override(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL))
                         .into(iv);
+            }
         } else {
             // check for corruption
             Object obj = iv.getTag(R.id.sp_loader_key);
             if (obj != null && !(obj instanceof StickerLoader)) {
-                throw new RuntimeException("You can't use R.id.sp_loader_key for setting own tags.");
+                throw new RuntimeException(
+                        "You can't use R.id.sp_loader_key for setting own tags.");
             }
         }
     }
-
 }

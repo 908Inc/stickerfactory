@@ -28,10 +28,10 @@ import android.widget.ImageView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
-import com.bumptech.glide.load.resource.drawable.GlideDrawable;
-import com.bumptech.glide.request.animation.GlideAnimation;
+import com.bumptech.glide.request.RequestOptions;
 import com.bumptech.glide.request.target.ImageViewTarget;
 import com.bumptech.glide.request.target.Target;
+import com.bumptech.glide.request.transition.Transition;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -55,7 +55,8 @@ import vc908.stickerfactory.utils.Utils;
 /**
  * @author Dmitry Nezhydenko
  */
-public class StickersListFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
+public class StickersListFragment extends Fragment
+        implements LoaderManager.LoaderCallbacks<Cursor> {
     private static final String TAG = StickersListFragment.class.getSimpleName();
     public static final String ARGUMENT_PACK = "argument_pack";
     protected List<OnStickerSelectedListener> stickerSelectedListeners = new ArrayList<>();
@@ -86,7 +87,8 @@ public class StickersListFragment extends Fragment implements LoaderManager.Load
         if (getArguments() != null) {
             packName = getArguments().getString(ARGUMENT_PACK);
         }
-        maxStickerWidth = (int) getContext().getResources().getDimension(R.dimen.sp_list_max_sticker_width);
+        maxStickerWidth =
+                (int) getContext().getResources().getDimension(R.dimen.sp_list_max_sticker_width);
         stickerPreviewDelegate = new StickerPreviewDelegate() {
             @Override
             public void showStickerPreview(String stickerName, int clickedViewSize) {
@@ -106,7 +108,8 @@ public class StickersListFragment extends Fragment implements LoaderManager.Load
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
         if (layout == null) {
             layout = inflater.inflate(getLayoutId(), container, false);
             rv = (RecyclerView) layout.findViewById(R.id.recycler_view);
@@ -120,8 +123,8 @@ public class StickersListFragment extends Fragment implements LoaderManager.Load
             int padding = getResources().getDimensionPixelSize(R.dimen.material_8);
             // calculate stickers columns count
             String splitGroup = StorageManager.getInstance().getUserSplitGroup();
-            int columnsCount = (int) Math.ceil(Utils.getScreenWidthInPx(getContext())
-                    / ((float) (SplitManager.isStickerCellSmallSize() ? maxStickerWidth / 2 : maxStickerWidth)
+            int columnsCount = (int) Math.ceil(Utils.getScreenWidthInPx(getContext()) / ((float) (
+                    SplitManager.isStickerCellSmallSize() ? maxStickerWidth / 2 : maxStickerWidth)
                     + padding * 2));
 
             GridLayoutManager lm = (new GridLayoutManager(getContext(), columnsCount));
@@ -129,7 +132,6 @@ public class StickersListFragment extends Fragment implements LoaderManager.Load
         }
         return layout;
     }
-
 
     private void showStickerPreviewDialog(String contentId, int clickedViewSize) {
         if (!TextUtils.isEmpty(contentId)) {
@@ -164,7 +166,13 @@ public class StickersListFragment extends Fragment implements LoaderManager.Load
             imageView.setAlpha(0f);
             imageView.setScaleX(0.5f);
             imageView.setScaleY(0.5f);
-            imageView.animate().scaleX(1).scaleY(1).alpha(1).setDuration(200).setStartDelay(100).start();
+            imageView.animate()
+                    .scaleX(1)
+                    .scaleY(1)
+                    .alpha(1)
+                    .setDuration(200)
+                    .setStartDelay(100)
+                    .start();
             dialog.setContentView(layout);
             int clickedViewSize = getArguments().getInt(ARG_CLICKED_VIEW_WIDTH);
             String contentId = getArguments().getString(ARG_CONTENT_ID);
@@ -172,12 +180,12 @@ public class StickersListFragment extends Fragment implements LoaderManager.Load
                 Uri uri = Uri.fromFile(StorageManager.getInstance().getImageFile(contentId));
                 Glide.with(getContext())
                         .load(uri)
-                        .dontAnimate()
-                        .override(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL)
+                        .apply(new RequestOptions().dontAnimate()
+                                .override(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL))
                         .thumbnail(Glide.with(getContext())
                                 .load(uri)
-                                .dontAnimate()
-                                .override(clickedViewSize, clickedViewSize))
+                                .apply(new RequestOptions().dontAnimate()
+                                        .override(clickedViewSize, clickedViewSize)))
                         .into(imageView);
             }
             return dialog;
@@ -204,14 +212,9 @@ public class StickersListFragment extends Fragment implements LoaderManager.Load
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        return new CursorLoader(
-                getContext(),
-                StickersColumns.CONTENT_URI,
+        return new CursorLoader(getContext(), StickersColumns.CONTENT_URI,
                 new String[]{StickersColumns._ID, StickersColumns.CONTENT_ID},
-                StickersColumns.PACK + "=?",
-                new String[]{packName},
-                null
-        );
+                StickersColumns.PACK + "=?", new String[]{packName}, null);
     }
 
     @Override
@@ -231,7 +234,8 @@ public class StickersListFragment extends Fragment implements LoaderManager.Load
             adapter.changeCursor(cursor);
         }
         if (cursor.getCount() == 0) {
-            TasksManager.getInstance().addPackPurchaseTask(packName, StickersPack.PurchaseType.FREE, false);
+            TasksManager.getInstance()
+                    .addPackPurchaseTask(packName, StickersPack.PurchaseType.FREE, false);
             progress.setVisibility(View.VISIBLE);
         }
     }
@@ -241,7 +245,8 @@ public class StickersListFragment extends Fragment implements LoaderManager.Load
     }
 
     protected StickersAdapter createStickersAdapter(Cursor cursor) {
-        return new StickersAdapter(this, cursor, stickerSelectedListeners, stickerFileSelectedListener, stickerPreviewDelegate);
+        return new StickersAdapter(this, cursor, stickerSelectedListeners,
+                stickerFileSelectedListener, stickerPreviewDelegate);
     }
 
     @Override
@@ -266,8 +271,8 @@ public class StickersListFragment extends Fragment implements LoaderManager.Load
         boolean isPackPreviewVisible();
     }
 
-
-    protected static class StickersAdapter extends CursorRecyclerViewAdapter<StickersAdapter.ViewHolder> {
+    protected static class StickersAdapter
+            extends CursorRecyclerViewAdapter<StickersAdapter.ViewHolder> {
 
         private Drawable placeholderDrawable;
         private MySimpleGestureListener longPressGestureListener;
@@ -280,32 +285,40 @@ public class StickersListFragment extends Fragment implements LoaderManager.Load
         private boolean isStickerPreviewEnabled = true;
         private int halfStickerWidth;
 
-        public StickersAdapter(Fragment fragment, Cursor cursor, List<OnStickerSelectedListener> stickerSelectedListeners, OnStickerFileSelectedListener stickerFileSelectedListener, StickerPreviewDelegate stickerPreviewDelegate) {
+        public StickersAdapter(Fragment fragment, Cursor cursor,
+                               List<OnStickerSelectedListener> stickerSelectedListeners,
+                               OnStickerFileSelectedListener stickerFileSelectedListener,
+                               StickerPreviewDelegate stickerPreviewDelegate) {
             super(cursor);
             mAdapterFragment = fragment;
             mStickerSelectedListeners = stickerSelectedListeners;
             mStickerFileSelectedListener = stickerFileSelectedListener;
-            padding = fragment.getContext().getResources().getDimensionPixelSize(R.dimen.material_8);
-            selectedItemFilterColor = new PorterDuffColorFilter(0xffdddddd, PorterDuff.Mode.MULTIPLY);
+            padding =
+                    fragment.getContext().getResources().getDimensionPixelSize(R.dimen.material_8);
+            selectedItemFilterColor =
+                    new PorterDuffColorFilter(0xffdddddd, PorterDuff.Mode.MULTIPLY);
             this.stickerPreviewDelegate = stickerPreviewDelegate;
             longPressGestureListener = new MySimpleGestureListener(stickerPreviewDelegate);
-            placeholderDrawable = ContextCompat.getDrawable(fragment.getContext(), R.drawable.sp_sticker_placeholder);
-            placeholderDrawable.setColorFilter(ContextCompat.getColor(fragment.getContext(), R.color.sp_placeholder_color_filer), PorterDuff.Mode.SRC_IN);
-            halfStickerWidth = (int) mAdapterFragment.getResources().getDimension(R.dimen.sp_list_max_sticker_width) / 2;
-
+            placeholderDrawable =
+                    ContextCompat.getDrawable(fragment.getContext(), R.drawable.sp_sticker_placeholder);
+            placeholderDrawable.setColorFilter(
+                    ContextCompat.getColor(fragment.getContext(), R.color.sp_placeholder_color_filer),
+                    PorterDuff.Mode.SRC_IN);
+            halfStickerWidth = (int) mAdapterFragment.getResources()
+                    .getDimension(R.dimen.sp_list_max_sticker_width) / 2;
         }
 
         public void setStickerPreviewEnabled(boolean isEnabled) {
             isStickerPreviewEnabled = isEnabled;
         }
 
-
         @Override
         public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             ImageView iv;
             if (SplitManager.isStickerCellSmallSize()) {
                 iv = new ImageView(mAdapterFragment.getContext());
-                GridLayoutManager.LayoutParams lp = new GridLayoutManager.LayoutParams(halfStickerWidth, halfStickerWidth);
+                GridLayoutManager.LayoutParams lp =
+                        new GridLayoutManager.LayoutParams(halfStickerWidth, halfStickerWidth);
                 iv.setLayoutParams(lp);
             } else {
                 iv = new SquareImageView(mAdapterFragment.getContext());
@@ -328,19 +341,20 @@ public class StickersListFragment extends Fragment implements LoaderManager.Load
             if (uri != null) {
                 Glide.with(mAdapterFragment)
                         .load(uri)
-                        .placeholder(android.R.color.transparent)
-                        .diskCacheStrategy(DiskCacheStrategy.RESULT)
-                        .into(new ImageViewTarget<GlideDrawable>(viewHolder.iv) {
+                        .apply(new RequestOptions().placeholder(android.R.color.transparent)
+                                .diskCacheStrategy(DiskCacheStrategy.RESOURCE))
+                        .into(new ImageViewTarget<Drawable>(viewHolder.iv) {
                             @Override
-                            public void onResourceReady(GlideDrawable resource, GlideAnimation<? super GlideDrawable> glideAnimation) {
-                                super.onResourceReady(resource, glideAnimation);
-                                getView().setOnTouchListener(imageTouchListener);
-                                getView().setTag(R.id.content, viewHolder.contentId);
+                            protected void setResource(@Nullable Drawable resource) {
+                                getView().setImageDrawable(resource);
                             }
 
                             @Override
-                            protected void setResource(GlideDrawable resource) {
-                                getView().setImageDrawable(resource);
+                            public void onResourceReady(Drawable resource,
+                                                        @Nullable Transition<? super Drawable> transition) {
+                                super.onResourceReady(resource, transition);
+                                getView().setOnTouchListener(imageTouchListener);
+                                getView().setTag(R.id.content, viewHolder.contentId);
                             }
                         });
             } else {
@@ -371,7 +385,8 @@ public class StickersListFragment extends Fragment implements LoaderManager.Load
                         }
                     }
                     if (mStickerFileSelectedListener != null) {
-                        mStickerFileSelectedListener.onStickerFileSelected(StorageManager.getInstance().getImageFile(contentId));
+                        mStickerFileSelectedListener.onStickerFileSelected(
+                                StorageManager.getInstance().getImageFile(contentId));
                     }
                     KeyboardUtils.hideKeyboard(v.getContext(), v);
                 });
@@ -427,7 +442,6 @@ public class StickersListFragment extends Fragment implements LoaderManager.Load
             }
         };
 
-
         private static class MySimpleGestureListener {
             private View currentView;
             private StickerPreviewDelegate stickerPreviewDelegate;
@@ -444,7 +458,8 @@ public class StickersListFragment extends Fragment implements LoaderManager.Load
                 if (currentView != null && stickerPreviewDelegate != null) {
                     String contentId = (String) currentView.getTag(R.id.content);
                     if (!TextUtils.isEmpty(contentId)) {
-                        stickerPreviewDelegate.showStickerPreview(contentId, currentView.getWidth());
+                        stickerPreviewDelegate.showStickerPreview(contentId,
+                                currentView.getWidth());
                     }
                 }
             }
